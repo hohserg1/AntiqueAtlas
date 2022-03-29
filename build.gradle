@@ -1,17 +1,27 @@
+apply plugin: 'idea'
+
+idea {
+    module {
+        inheritOutputDirs = true
+    }
+}
 buildscript {
     repositories {
         jcenter()
-        maven { url = "http://files.minecraftforge.net/maven" }
+        maven { url = 'https://maven.minecraftforge.net/' }
+        maven { url = 'https://repo.spongepowered.org/maven' }
+        mavenCentral()
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
+        classpath 'net.minecraftforge.gradle:ForgeGradle:5.1.27'
     }
 }
-apply plugin: 'net.minecraftforge.gradle.forge'
+apply plugin: 'net.minecraftforge.gradle'
+apply plugin: 'java'
 //Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
 
 
-group= "hunternif.mc.atlas"
+group = "hunternif.mc.atlas"
 archivesBaseName = "antiqueatlas"
 
 ext.mod_version = "$version_major.$version_minor.$version_patch"
@@ -23,72 +33,91 @@ compileJava {
 }
 
 minecraft {
-    version = "$mc_version-$forge_version"
-    runDir = "run"
-    
-    // the mappings can be changed at any time, and must be in the following format.
-    // snapshot_YYYYMMDD   snapshot are built nightly.
-    // stable_#            stables are built at the discretion of the MCP team.
-    // Use non-default mappings at your own risk. they may not always work.
-    // simply re-run your setup task after changing the mappings to update your workspace.
-    mappings = "stable_39"
-    // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
+    mappings channel: 'stable', version: '39-1.12'
 
-	replace '@VERSION@', project.mod_version
+    runs {
+        client {
+            workingDirectory project.file('run')
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+            property 'forge.logging.console.level', 'debug'
+
+            property '--usename', 'hohserg'
+
+            mods {
+                antiqueatlas {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        server {
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+            property 'forge.logging.console.level', 'debug'
+        }
+    }
 }
 
 dependencies {
-    // you may put jars on which you depend on in ./libs
-    // or you may define them like so..
-    //compile "some.group:artifact:version:classifier"
-    //compile "some.group:artifact:version"
-      
-    // real examples
-    //compile 'com.mod-buildcraft:buildcraft:6.0.8:dev'  // adds buildcraft to the dev env
-    //compile 'com.googlecode.efficient-java-matrix-library:ejml:0.24' // adds ejml to the dev env
+    minecraft "net.minecraftforge:forge:$mc_version-$forge_version"
 
-    // the 'provided' configuration is for optional dependencies that exist at compile-time but might not at runtime.
-    //provided 'com.mod-buildcraft:buildcraft:6.0.8:dev'
-
-    // the deobf configurations:  'deobfCompile' and 'deobfProvided' are the same as the normal compile and provided,
-    // except that these dependencies get remapped to your current MCP mappings
-    //deobfCompile 'com.mod-buildcraft:buildcraft:6.0.8:dev'
-    //deobfProvided 'com.mod-buildcraft:buildcraft:6.0.8:dev'
-
-    // for more info...
-    // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
-    // http://www.gradle.org/docs/current/userguide/dependency_management.html
-
-	testCompile "junit:junit:4.+"
+    testImplementation "junit:junit:4.+"
 }
 
+/*
 processResources {
-    // this will ensure that this task is redone when the versions change.
     inputs.property "version", project.version
-    inputs.property "mcversion", project.minecraft.version
+    inputs.property "mcversion", "$mc_version"
 
     // replace stuff in mcmod.info, nothing else
     from(sourceSets.main.resources.srcDirs) {
         include 'mcmod.info'
-                
+
         // replace version and mcversion
-        expand 'version':project.version, 'mcversion':project.minecraft.version
+        expand 'version': project.version, 'mcversion': "$mc_version"
     }
-        
+
     // copy everything else except the mcmod.info
     from(sourceSets.main.resources.srcDirs) {
         exclude 'mcmod.info'
     }
 }
+*/
+
+jar {
+    manifest {
+        attributes([
+                "Specification-Title"        : "coprize",
+                "Specification-Vendor"       : "coprizesareus",
+                "Specification-Version"      : "1", // We are version 1 of ourselves
+                "Implementation-Title"       : project.name,
+                "Implementation-Version"     : "${version}",
+                "Implementation-Vendor"      : "coprizesareus",
+                "Implementation-Timestamp"   : new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+
+                'FMLCorePlugin'              : 'hohserg.co.prize.hooklib.example.ExampleHookLoader',
+                'FMLCorePluginContainsFMLMod': 'true',
+                'Created-By'                 : '1.7.0 (Oracle Corporation)',
+
+                'FMLAT'                      : 'coprize_at.cfg'
+        ])
+    }
+}
+
+jar.finalizedBy('reobfJar')
 
 task deobfJar(type: Jar) {
     from sourceSets.main.output
     classifier = 'deobf'
 }
 
+task sourceJar(type: Jar, dependsOn: classes) {
+    from sourceSets.main.allSource
+    classifier = 'sources'
+}
+
 tasks.build.dependsOn('sourceJar', 'deobfJar')
 
 artifacts {
-	archives deobfJar 
-	archives sourceJar
+    archives deobfJar
+    archives sourceJar
 }
