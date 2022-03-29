@@ -14,12 +14,16 @@ import hunternif.mc.atlas.registry.MarkerRenderInfo;
 import hunternif.mc.atlas.registry.MarkerType;
 import hunternif.mc.atlas.util.AtlasRenderHelper;
 import hunternif.mc.atlas.util.Rect;
+import hunternif.mc.atlas.util.RenderUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
+import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -147,6 +151,27 @@ public class AAORenderEventReceiver {
         AtlasRenderHelper.drawFullTexture(Textures.BOOK_FRAME, shape.minX,
                 shape.minY, shape.getWidth(), shape.getHeight());
         GlStateManager.disableBlend();
+
+        int cx = (shape.maxX + shape.minX) / 2;
+        int y = shape.maxY;
+        Minecraft mc = Minecraft.getMinecraft();
+        int px = MathHelper.floor(mc.player.posX + 0.5);
+        int py = MathHelper.floor(mc.player.posY + 0.5);
+        int pz = MathHelper.floor(mc.player.posZ + 0.5);
+        drawCenteredLabel("" + px + ", " + py + ", " + pz, cx, y + 5);
+    }
+    private static void drawCenteredLabel(String line, int cx, int y) {
+        FontRenderer fontRenderer = Minecraft.getMinecraft().fontRenderer;
+
+        int stringWidth = fontRenderer.getStringWidth(line);
+        int x = cx - stringWidth / 2;
+
+        GlStateManager.scale(0.5, 0.5, 1);
+        RenderUtil.draw9GridScaleTexture((x - 5) * 2, (y - 3) * 2, (stringWidth + 10) * 2 + 1, 30,
+                new ResourceLocation("antiqueatlas", "textures/gui/book2.png"));
+        GlStateManager.scale(2, 2, 1);
+
+        fontRenderer.drawStringWithShadow(line, x, y, 0xffffffff);
     }
 
     private static void drawTiles(Rect shape, int atlasID, Vec3d position,
