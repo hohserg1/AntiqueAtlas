@@ -24,6 +24,7 @@ public class Textures {
 	MARKER_FRAME_ON = gui("marker_frame_on.png"),
 	MARKER_FRAME_OFF = gui("marker_frame_off.png"),
 	ERASER = gui("eraser.png"),
+	COPIER = gui("copier.png"),
 
 	SCALEBAR_4 = scaleBar("scalebar_4.png"),
 	SCALEBAR_8 = scaleBar("scalebar_8.png"),
@@ -36,6 +37,8 @@ public class Textures {
 
 	ICON_ADD_MARKER = icon("add_marker.png"),
 	ICON_DELETE_MARKER = icon("del_marker.png"),
+	ICON_COPY_MARKER = icon("copy_marker.png"),
+	ICON_PASTE_MARKER = icon("paste_marker.png"),
 	ICON_SHOW_MARKERS = icon("show_markers.png"),
 	ICON_HIDE_MARKERS = icon("hide_markers.png"),
 	ICON_EXPORT = icon("export.png"),

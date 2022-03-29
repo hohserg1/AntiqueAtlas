@@ -140,6 +140,28 @@ public class GuiAtlas extends GuiComponent {
 	};
 	private final GuiCursor eraser = new GuiCursor();
 
+	/**
+	 * If on, the closest marker will be copied upon mouseclick.
+	 */
+	private final IState COPYING_MARKER = new IState() {
+
+		@Override
+		public void onEnterState() {
+			mc.mouseHelper.grabMouseCursor();
+			addChild(copier);
+			btnCopyMarker.setSelected(true);
+		}
+
+		@Override
+		public void onExitState() {
+			mc.mouseHelper.ungrabMouseCursor();
+			removeChild(copier);
+			btnCopyMarker.setSelected(false);
+
+		}
+	};
+	private final GuiCursor copier = new GuiCursor();
+
 	private final IState EXPORTING_IMAGE = new IState() {
 		@Override
 		public void onEnterState() {
@@ -173,6 +195,11 @@ public class GuiAtlas extends GuiComponent {
 	 * Button for deleting local markers.
 	 */
 	private final GuiBookmarkButton btnDelMarker;
+
+	/**
+	 * Button for copying local markers.
+	 */
+	private final GuiBookmarkButton btnCopyMarker;
 
 	/**
 	 * Button for showing/hiding all markers.
@@ -337,7 +364,7 @@ public class GuiAtlas extends GuiComponent {
 				return !ExportImageUtil.isExporting;
 			}
 		};
-		addChild(btnExportPng).offsetGuiCoords(300, 75);
+		addChild(btnExportPng).offsetGuiCoords(300, 94);
 		btnExportPng.addListener(button -> {
 			if (stack != null || !SettingsConfig.gameplay.itemNeeded) {
 				exportThread = new Thread(() -> exportImage(getAtlasID()), "Atlas file export thread");
@@ -394,8 +421,25 @@ public class GuiAtlas extends GuiComponent {
 				}
 			}
 		});
+		btnCopyMarker = new GuiBookmarkButton(0, Textures.ICON_COPY_MARKER, I18n.format("gui.antiqueatlas.copyMarker"));
+		addChild(btnCopyMarker).offsetGuiCoords(300, 52);
+		btnCopyMarker.addListener(button -> {
+			if (stack != null || !SettingsConfig.gameplay.itemNeeded) {
+				if (copiedMarker == null) {
+					if (state.is(COPYING_MARKER)) {
+						selectedButton = null;
+						state.switchTo(NORMAL);
+					} else {
+						selectedButton = button;
+						state.switchTo(COPYING_MARKER);
+					}
+				} else
+					pasteMarker();
+
+			}
+		});
 		btnShowMarkers = new GuiBookmarkButton(3, Textures.ICON_HIDE_MARKERS, I18n.format("gui.antiqueatlas.hideMarkers"));
-		addChild(btnShowMarkers).offsetGuiCoords(300, 52);
+		addChild(btnShowMarkers).offsetGuiCoords(300, 71);
 		btnShowMarkers.addListener(button -> {
 			if (stack != null || !SettingsConfig.gameplay.itemNeeded) {
 				selectedButton = null;
@@ -409,6 +453,7 @@ public class GuiAtlas extends GuiComponent {
 		markerFinalizer.addListener(blinkingIcon);
 
 		eraser.setTexture(Textures.ERASER, 12, 14, 2, 11);
+		copier.setTexture(Textures.COPIER, 12, 14, 2, 11);
 	}
 
 	public GuiAtlas prepareToOpen(ItemStack stack) {
@@ -481,10 +526,12 @@ public class GuiAtlas extends GuiComponent {
 				// Un-press all keys to prevent player from walking infinitely:
 				KeyBinding.unPressAllKeys();
 
-			} else if (state.is(DELETING_MARKER) // If clicked on a marker, delete it:
-					&& hoveredMarker != null && !hoveredMarker.isGlobal() && isMouseOverMap && mouseState == 0) {
-				AtlasAPI.markers.deleteMarker(player.getEntityWorld(),
-						atlasID, hoveredMarker.getId());
+			} else if (hoveredMarker != null && !hoveredMarker.isGlobal() && isMouseOverMap && mouseState == 0) {
+				if (state.is(DELETING_MARKER))
+					AtlasAPI.markers.deleteMarker(player.getEntityWorld(),
+							atlasID, hoveredMarker.getId());
+				else if (state.is(COPYING_MARKER))
+					copyMarker(hoveredMarker);
 			}
 			state.switchTo(NORMAL);
 		} else if (isMouseOverMap && selectedButton == null) {
@@ -496,6 +543,31 @@ public class GuiAtlas extends GuiComponent {
 				dragMapOffsetY = mapOffsetY;
 			}
 		}
+	}
+
+	private static Marker copiedMarker;
+
+	private void copyMarker(Marker marker) {
+		copiedMarker = marker;
+
+		selectedButton = null;
+		btnCopyMarker.setSelected(false);
+		btnCopyMarker.setTitle(I18n.format("gui.antiqueatlas.pasteMarker"));
+		btnCopyMarker.setIconTexture(Textures.ICON_PASTE_MARKER);
+		state.switchTo(NORMAL);
+	}
+
+	private void pasteMarker() {
+		if (copiedMarker != null) {
+			AtlasAPI.markers.putMarker(player.getEntityWorld(), true, getAtlasID(), copiedMarker.getType(), copiedMarker.getLabel(), copiedMarker.getX(), copiedMarker.getZ());
+
+			copiedMarker = null;
+		}
+
+		btnCopyMarker.setSelected(false);
+		btnCopyMarker.setTitle(I18n.format("gui.antiqueatlas.copyMarker"));
+		btnCopyMarker.setIconTexture(Textures.ICON_COPY_MARKER);
+		state.switchTo(NORMAL);
 	}
 
 	/**
