@@ -1,5 +1,6 @@
 package hunternif.mc.atlas.client.gui;
 
+import com.google.common.collect.ImmutableList;
 import hunternif.mc.atlas.AntiqueAtlasMod;
 import hunternif.mc.atlas.SettingsConfig;
 import hunternif.mc.atlas.api.AtlasAPI;
@@ -865,6 +866,8 @@ public class GuiAtlas extends GuiComponent {
 					mouseX + renderInfo.x, mouseY + renderInfo.y,
 					renderInfo.width, renderInfo.height);
 			GlStateManager.color(1, 1, 1, 1);
+
+			drawHoveringText(screenXToWorldX(mouseX) + ", " + screenYToWorldZ(mouseY), mouseX, mouseY);
 		}
 
 		// Draw progress overlay:
@@ -984,8 +987,19 @@ public class GuiAtlas extends GuiComponent {
 				markerX + info.x,
 				markerY + info.y,
 				info.width, info.height);
-		if (isMouseOver && mouseIsOverMarker && marker.getLabel().length() > 0) {
-			drawTooltip(Collections.singletonList(marker.getLocalizedLabel()), mc.fontRenderer);
+
+		if (isMouseOver && mouseIsOverMarker) {
+			if (state.is(PLACING_MARKER)) {
+				if (marker.getLabel().length() > 0)
+					drawTooltip(Collections.singletonList(marker.getLocalizedLabel()), mc.fontRenderer);
+
+			} else {
+				String coordsLabel = marker.getX() + ", " + marker.getZ();
+				if (marker.getLabel().isEmpty())
+					drawTooltip(ImmutableList.of(coordsLabel), mc.fontRenderer);
+				else
+					drawTooltip(ImmutableList.of(marker.getLocalizedLabel(), coordsLabel), mc.fontRenderer);
+			}
 		}
 	}
 
