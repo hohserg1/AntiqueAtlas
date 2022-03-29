@@ -83,26 +83,6 @@ processResources {
 }
 */
 
-jar {
-    manifest {
-        attributes([
-                "Specification-Title"        : "coprize",
-                "Specification-Vendor"       : "coprizesareus",
-                "Specification-Version"      : "1", // We are version 1 of ourselves
-                "Implementation-Title"       : project.name,
-                "Implementation-Version"     : "${version}",
-                "Implementation-Vendor"      : "coprizesareus",
-                "Implementation-Timestamp"   : new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
-
-                'FMLCorePlugin'              : 'hohserg.co.prize.hooklib.example.ExampleHookLoader',
-                'FMLCorePluginContainsFMLMod': 'true',
-                'Created-By'                 : '1.7.0 (Oracle Corporation)',
-
-                'FMLAT'                      : 'coprize_at.cfg'
-        ])
-    }
-}
-
 jar.finalizedBy('reobfJar')
 
 task deobfJar(type: Jar) {
