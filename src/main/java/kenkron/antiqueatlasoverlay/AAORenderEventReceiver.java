@@ -122,15 +122,13 @@ public class AAORenderEventReceiver {
         }
     }
 
-    public static void drawMinimap(Rect shape, int atlasID, Vec3d position, float rotation,
-                                   int dimension) {
+    public static void drawMinimap(Rect shape, int atlasID, Vec3d position, float rotation, int dimension) {
         screenScale = new ScaledResolution(Minecraft.getMinecraft()).getScaleFactor();
         GlStateManager.color(1, 1, 1, 1);
         GlStateManager.enableBlend();
         GlStateManager.alphaFunc(GL11.GL_GREATER, 0); // So light detail on tiles is
         // visible
-        AtlasRenderHelper.drawFullTexture(Textures.BOOK, shape.minX,
-                shape.minY, shape.getWidth(), shape.getHeight());
+        AtlasRenderHelper.drawFullTexture(Textures.BOOK, shape.minX, shape.minY, shape.getWidth(), shape.getHeight());
         Rect innerShape = new Rect(
                 // stop it eclipse
                 shape.minX + Math.round(AAOConfig.appearance.borderX * shape.getWidth()),
