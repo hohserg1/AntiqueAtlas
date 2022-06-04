@@ -1,15 +1,21 @@
 package hunternif.mc.atlas;
 
+import hunternif.mc.atlas.client.ingame.book.AtlasBakedModel;
+import hunternif.mc.atlas.client.ingame.book.BookRenderer;
 import hunternif.mc.atlas.item.ItemAtlas;
 import hunternif.mc.atlas.item.ItemEmptyAtlas;
 import hunternif.mc.atlas.item.RecipeAtlasCloning;
 import hunternif.mc.atlas.item.RecipeAtlasCombining;
+import net.minecraft.client.renderer.block.model.BuiltInModel;
+import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
+import net.minecraft.client.renderer.block.model.ItemOverrideList;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.client.event.ModelBakeEvent;
 import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.event.RegistryEvent;
@@ -23,9 +29,9 @@ import net.minecraftforge.oredict.ShapelessOreRecipe;
 public class RegistrarAntiqueAtlas {
 
     @GameRegistry.ObjectHolder("empty_antique_atlas")
-    public static final ItemEmptyAtlas EMPTY_ATLAS = new ItemEmptyAtlas();
+    public static ItemEmptyAtlas EMPTY_ATLAS;
     @GameRegistry.ObjectHolder("antique_atlas")
-    public static final ItemAtlas ATLAS = new ItemAtlas();
+    public static ItemAtlas ATLAS;
 
     @SubscribeEvent
     public static void registerItems(RegistryEvent.Register<Item> event) {
@@ -49,7 +55,15 @@ public class RegistrarAntiqueAtlas {
         if (SettingsConfig.gameplay.itemNeeded) {
             ModelLoader.setCustomModelResourceLocation(EMPTY_ATLAS, 0, new ModelResourceLocation(EMPTY_ATLAS.getRegistryName(), "inventory"));
             ModelLoader.setCustomMeshDefinition(ATLAS, stack -> new ModelResourceLocation(ATLAS.getRegistryName(), "inventory"));
+            ATLAS.setTileEntityItemStackRenderer(new BookRenderer());
         }
+    }
+
+    @SubscribeEvent
+    public static void registerModels2(ModelBakeEvent event) {
+        event.getModelRegistry().putObject(
+                new ModelResourceLocation(ATLAS.getRegistryName(), "inventory"),
+                new AtlasBakedModel(event.getModelRegistry().getObject(new ModelResourceLocation(ATLAS.getRegistryName(), "inventory"))));
     }
 
     // Probably not needed since Forge for 1.12 does not support transfers from earlier than 1.11.2, but just in case

@@ -1,0 +1,271 @@
+package hunternif.mc.atlas.client.ingame.book;
+
+import hunternif.mc.atlas.AntiqueAtlasMod;
+import hunternif.mc.atlas.util.Rect;
+import kenkron.antiqueatlasoverlay.AAORenderEventReceiver;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.EntityPlayerSP;
+import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.ItemRenderer;
+import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
+import net.minecraft.client.renderer.tileentity.TileEntityItemStackRenderer;
+import net.minecraft.client.shader.Framebuffer;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.MathHelper;
+import org.lwjgl.opengl.GL11;
+
+import static hunternif.mc.atlas.client.ingame.book.BookRenderer.RenderCase.*;
+import static hunternif.mc.atlas.client.ingame.book.BookRenderer.SwingState.*;
+import static hunternif.mc.atlas.client.ingame.book.Refs.*;
+import static net.minecraft.client.renderer.block.model.ItemCameraTransforms.TransformType.*;
+
+public class BookRenderer extends TileEntityItemStackRenderer {
+
+    public static ItemCameraTransforms.TransformType cameraTransformType = FIRST_PERSON_LEFT_HAND;
+
+    ResourceLocation cover = new ResourceLocation(AntiqueAtlasMod.ID, "textures/models/book/em_book2.png");
+    ResourceLocation pages = new ResourceLocation(AntiqueAtlasMod.ID, "textures/models/book/page.png");
+    BookModel model = new BookModel();
+
+    private Framebuffer pageTexture;
+
+    private Framebuffer pageTexture() {
+        if (pageTexture == null)
+            pageTexture = new Framebuffer(pageContainerWidth, pageHeight, false);
+
+        return pageTexture;
+    }
+
+    public static enum RenderCase {
+        right, left, both, other
+    }
+
+    public enum SwingState {
+        openingStart, openingEnd, closing
+    }
+
+    private static SwingState leftSwingState = openingEnd;
+    private static SwingState rightSwingState = openingEnd;
+    private static double prevF5 = 0;
+    private static double prevF6 = 0;
+
+
+    @Override
+    public void renderByItem(ItemStack itemStackIn, float partialTicks) {
+        partialTicks = Minecraft.getMinecraft().getRenderPartialTicks();
+
+        ItemRenderer itemRenderer = Minecraft.getMinecraft().getItemRenderer();
+
+        EnumHand enumhand = cameraTransformType == FIRST_PERSON_LEFT_HAND ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND;
+
+        EntityPlayerSP player = Minecraft.getMinecraft().player;
+        float f = player.getSwingProgress(partialTicks);
+
+        RenderCase renderCase;
+        if (cameraTransformType == FIRST_PERSON_LEFT_HAND) {
+            renderCase = left;
+        } else if (cameraTransformType == FIRST_PERSON_RIGHT_HAND) {
+            if (player.getHeldItemOffhand().isEmpty())
+                renderCase = both;
+            else
+                renderCase = right;
+        } else
+            renderCase = other;
+
+        float f3 = enumhand == EnumHand.MAIN_HAND ? f : 0.0F;
+        float f5 = 1.0F - (itemRenderer.prevEquippedProgressMainHand + (itemRenderer.equippedProgressMainHand - itemRenderer.prevEquippedProgressMainHand) * partialTicks);
+        float f4 = enumhand == EnumHand.OFF_HAND ? f : 0.0F;
+        float f6 = 1.0F - (itemRenderer.prevEquippedProgressOffHand + (itemRenderer.equippedProgressOffHand - itemRenderer.prevEquippedProgressOffHand) * partialTicks);
+
+        // System.out.println(progress2);
+        /*
+
+        GlStateManager.pushMatrix();
+
+        float f1 = renderCase == right ? 1.0F : -1.0F;
+        int i = cameraTransformType == FIRST_PERSON_RIGHT_HAND ? 1 : -1;
+
+        GlStateManager.scale(2, 2, 2);
+        switch (renderCase) {
+            case right:
+                //GlStateManager.rotate(f * 10.0F, 0.0F, 0.0F, 1.0F);
+                itemRenderer.renderArmFirstPerson(f3, f5, EnumHandSide.RIGHT);
+                break;
+            case left:
+                GlStateManager.translate(-1 * (float) i * 0.56F, -1 * (-0.52F + f6 * -0.6F), -1 * -0.72F);
+                GlStateManager.translate(f1 * 0.125F, 0, 0.0F);
+                //GlStateManager.rotate(f * 10.0F, 0.0F, 0.0F, 1.0F);
+                itemRenderer.renderArmFirstPerson(f4, f6, EnumHandSide.LEFT);
+                break;
+            case both:
+                itemRenderer.renderArms();
+                break;
+        }
+        GlStateManager.popMatrix();
+
+        */
+
+        int atlas = itemStackIn.getItemDamage();
+
+        float scale = 1f / 16;
+
+        double x = 0.5 + (renderCase == right ? 0.2 : renderCase == left ? -0.2 : renderCase == both ? -0.55 : 0);
+        double y = 0.5 + (renderCase == both ? 0.5 : 0);
+        double z = 0;
+
+        GlStateManager.pushMatrix();
+        GlStateManager.translate(x, y, z);
+        GlStateManager.rotate(-90, 0, 1, 0);
+        if (renderCase == both) {
+            double s = 1.5;
+            GlStateManager.scale(s, s, s);
+            float angle = getMapAngleFromPitch(player.rotationPitch);
+            GlStateManager.translate(0, 0.04F + f5 * -1.2F + angle * -0.5F, 0);
+            GlStateManager.rotate(angle * -85.0F, 0, 0, -1);
+        }
+        GlStateManager.enableTexture2D();
+
+        double progress2 = 0;
+
+        if (renderCase == right || renderCase == both || cameraTransformType == THIRD_PERSON_RIGHT_HAND) {
+            if (rightSwingState == openingStart) {
+                progress2 = Math.PI + Math.PI / 2;
+                if (prevF5 > f5)
+                    rightSwingState = openingEnd;
+            } else if (rightSwingState == openingEnd) {
+                progress2 = Math.PI + Math.PI / 2 - (1 - f5) * Math.PI;
+                if (prevF5 < f5)
+                    rightSwingState = closing;
+            } else if (rightSwingState == closing) {
+                progress2 = Math.PI + Math.PI / 2 - (1 - Math.min(1, (f5 * 2))) * Math.PI;
+                if (f5 > 0.79)
+                    rightSwingState = openingStart;
+            }
+        } else if (renderCase == left || cameraTransformType == THIRD_PERSON_LEFT_HAND) {
+            if (leftSwingState == openingStart) {
+                progress2 = Math.PI + Math.PI / 2;
+                if (prevF6 > f6)
+                    leftSwingState = openingEnd;
+            } else if (leftSwingState == openingEnd) {
+                progress2 = Math.PI + Math.PI / 2 - (1 - f6) * Math.PI;
+                if (prevF6 < f6)
+                    leftSwingState = closing;
+            } else if (leftSwingState == closing) {
+                progress2 = Math.PI + Math.PI / 2 - (1 - Math.min(1, (f6 * 2))) * Math.PI;
+                if (f6 > 0.79)
+                    leftSwingState = openingStart;
+            }
+        } else if (renderCase == other)
+            progress2 = Math.PI + Math.PI / 2;
+        prevF5 = f5;
+        prevF6 = f6;
+
+        double progress = progress2;//(double) System.currentTimeMillis() / 100;
+        float openProgress = (float) ((Math.sin(progress) + 1) / 2);
+
+        if (cameraTransformType == THIRD_PERSON_LEFT_HAND || cameraTransformType == THIRD_PERSON_RIGHT_HAND) {
+            GlStateManager.translate(0.55, 0.155, 0);
+            double s = 0.5;
+            GlStateManager.scale(s, s, s);
+        } else if (cameraTransformType == GROUND) {
+            GlStateManager.translate(0.3, 0.1, 0);
+        }
+
+        Minecraft.getMinecraft().getTextureManager().bindTexture(cover);
+        GlStateManager.enableCull();
+        model.renderCover((float) progress, openProgress, 0, scale);
+
+
+        model.setRotationAnglesPages((float) progress, 0.7f, openProgress);
+
+        Framebuffer fbo = pageTexture();
+        drawPageTo(fbo, atlas);
+        model.renderPageContainerLeft(fbo, scale);
+        model.renderPageContainerRight(fbo, scale);
+
+        GlStateManager.color(1, 1, 1, 1);
+        GlStateManager.bindTexture(0);
+        GlStateManager.popMatrix();
+    }
+
+    private float getMapAngleFromPitch(float pitch) {
+        float f = 1.0F - pitch / 45.0F + 0.1F;
+        f = MathHelper.clamp(f, 0.0F, 1.0F);
+        f = -MathHelper.cos(f * (float) Math.PI) * 0.5F + 0.5F;
+        return f;
+    }
+
+    private void drawPageTo(Framebuffer framebuffer, int atlas) {
+
+        GlStateManager.enableTexture2D();
+        GlStateManager.disableLighting();
+        GlStateManager.enableAlpha();
+        GlStateManager.enableBlend();
+        GlStateManager.disableDepth();
+        GlStateManager.disableFog();
+        GlStateManager.color(1, 1, 1, 1);
+
+        framebuffer.bindFramebuffer(true);
+
+        saveMatrices();
+
+        identityMatrices();
+
+        setupProjectionArea();
+
+        GL11.glMatrixMode(GL11.GL_MODELVIEW);
+
+        GlStateManager.clearColor(1, 1, 1, 1);
+        GlStateManager.clear(GL11.GL_COLOR_BUFFER_BIT);
+        GlStateManager.translate(0, 0, -2000);
+
+        if (true) {
+            EntityPlayer player = Minecraft.getMinecraft().player;
+            AAORenderEventReceiver.res = new ScaledResolution(Minecraft.getMinecraft());
+            AAORenderEventReceiver.isBook = true;
+            AAORenderEventReceiver.drawMinimap(
+                    new Rect(-19, -17, 245, 199),
+                    atlas,
+                    player.getPositionVector(),
+                    player.getRotationYawHead(),
+                    player.dimension
+            );
+            AAORenderEventReceiver.isBook = false;
+        }
+
+        restoreMatrices();
+
+        Minecraft.getMinecraft().getFramebuffer().bindFramebuffer(true);
+
+        GlStateManager.enableDepth();
+    }
+
+    public void setupProjectionArea() {
+        GL11.glOrtho(0, w, h, 0, -300, 3000);
+    }
+
+    public void identityMatrices() {
+        GL11.glMatrixMode(GL11.GL_MODELVIEW);
+        GL11.glLoadIdentity();
+        GL11.glMatrixMode(GL11.GL_PROJECTION);
+        GL11.glLoadIdentity();
+    }
+
+    public void saveMatrices() {
+        GL11.glMatrixMode(GL11.GL_MODELVIEW);
+        GL11.glPushMatrix();
+        GL11.glMatrixMode(GL11.GL_PROJECTION);
+        GL11.glPushMatrix();
+    }
+
+    public void restoreMatrices() {
+        GL11.glMatrixMode(GL11.GL_PROJECTION);
+        GL11.glPopMatrix();
+        GL11.glMatrixMode(GL11.GL_MODELVIEW);
+        GL11.glPopMatrix();
+    }
+}
