@@ -91,16 +91,16 @@ public class AAORenderEventReceiver {
         EntityPlayerSP player = Minecraft.getMinecraft().player;
         Integer atlas = null;
 
-        if (AAOConfig.appearance.requiresHold) {
-            ItemStack stack = player.getHeldItemMainhand();
-            ItemStack stack2 = player.getHeldItemOffhand();
+        ItemStack stack = player.getHeldItemMainhand();
+        ItemStack stack2 = player.getHeldItemOffhand();
 
-            if (!stack.isEmpty() && stack.getItem() == RegistrarAntiqueAtlas.ATLAS) {
+        if (AAOConfig.appearance.requiresHold) {
+            if (stack.getItem() == RegistrarAntiqueAtlas.ATLAS)
                 atlas = stack.getItemDamage();
-            } else if (!stack2.isEmpty() && stack2.getItem() == RegistrarAntiqueAtlas.ATLAS) {
+            else if (stack2.getItem() == RegistrarAntiqueAtlas.ATLAS)
                 atlas = stack2.getItemDamage();
-            }
-        } else {
+
+        } else if (stack.getItem() != RegistrarAntiqueAtlas.ATLAS && stack2.getItem() != RegistrarAntiqueAtlas.ATLAS) {
             atlas = getPlayerAtlas(player);
         }
 
