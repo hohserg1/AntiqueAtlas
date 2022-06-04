@@ -46,7 +46,7 @@ public class AAORenderEventReceiver {
      */
     private static int screenScale = 1;
 
-    private static ScaledResolution res;
+    public static ScaledResolution res;
 
     /**
      * Convenience method that returns the first atlas ID for all atlas items
@@ -122,8 +122,8 @@ public class AAORenderEventReceiver {
         }
     }
 
-    private static void drawMinimap(Rect shape, int atlasID, Vec3d position, float rotation,
-                                    int dimension) {
+    public static void drawMinimap(Rect shape, int atlasID, Vec3d position, float rotation,
+                                   int dimension) {
         screenScale = new ScaledResolution(Minecraft.getMinecraft()).getScaleFactor();
         GlStateManager.color(1, 1, 1, 1);
         GlStateManager.enableBlend();
@@ -148,8 +148,7 @@ public class AAORenderEventReceiver {
 
         // Overlay the frame so that edges of the map are smooth:
         GlStateManager.color(1, 1, 1, 1);
-        AtlasRenderHelper.drawFullTexture(Textures.BOOK_FRAME, shape.minX,
-                shape.minY, shape.getWidth(), shape.getHeight());
+        AtlasRenderHelper.drawFullTexture(Textures.BOOK_FRAME, shape.minX, shape.minY, shape.getWidth(), shape.getHeight());
         GlStateManager.disableBlend();
 
         int cx = (shape.maxX + shape.minX) / 2;
@@ -177,10 +176,12 @@ public class AAORenderEventReceiver {
 
     private static void drawTiles(Rect shape, int atlasID, Vec3d position,
                                   int dimension) {
-        GL11.glEnable(GL11.GL_SCISSOR_TEST);
-        // glScissor uses the default window coordinates,
-        // the display window does not. We need to fix this
-        glScissorGUI(shape);
+        if (!isBook) {
+            GL11.glEnable(GL11.GL_SCISSOR_TEST);
+            // glScissor uses the default window coordinates,
+            // the display window does not. We need to fix this
+            glScissorGUI(shape);
+        }
         GlStateManager.enableBlend();
         GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 
@@ -224,7 +225,8 @@ public class AAORenderEventReceiver {
         }
         renderer.draw();
         // get GL back to normal
-        GL11.glDisable(GL11.GL_SCISSOR_TEST);
+        if (!isBook)
+            GL11.glDisable(GL11.GL_SCISSOR_TEST);
         GlStateManager.color(1, 1, 1, 1);
     }
 
@@ -342,6 +344,8 @@ public class AAORenderEventReceiver {
         maxChunkY += 1;
         return new Rect(minChunkX, minChunkY, maxChunkX, maxChunkY);
     }
+
+    public static boolean isBook = false;
 
     /**
      * Calls GL11.glScissor, but uses GUI coordinates
