@@ -100,7 +100,7 @@ public class AAORenderEventReceiver {
             else if (stack2.getItem() == RegistrarAntiqueAtlas.ATLAS)
                 atlas = stack2.getItemDamage();
 
-        } else if (stack.getItem() != RegistrarAntiqueAtlas.ATLAS && stack2.getItem() != RegistrarAntiqueAtlas.ATLAS) {
+        } else if (stack.getItem() != RegistrarAntiqueAtlas.ATLAS && stack2.getItem() != RegistrarAntiqueAtlas.ATLAS || !SettingsConfig.userInterface.enableBookRender) {
             atlas = getPlayerAtlas(player);
         }
 
@@ -228,13 +228,14 @@ public class AAORenderEventReceiver {
         GlStateManager.color(1, 1, 1, 1);
     }
 
-    private static void drawMarkers(Rect shape, int atlasID, Vec3d position,
-                                    int dimension) {
+    private static void drawMarkers(Rect shape, int atlasID, Vec3d position, int dimension) {
 
-        GL11.glEnable(GL11.GL_SCISSOR_TEST);
-        // glScissor uses the default window coordinates,
-        // the display window does not. We need to fix this
-        glScissorGUI(shape);
+        if (!isBook) {
+            GL11.glEnable(GL11.GL_SCISSOR_TEST);
+            // glScissor uses the default window coordinates,
+            // the display window does not. We need to fix this
+            glScissorGUI(shape);
+        }
 
         // biomeData needed to prevent undiscovered markers from appearing
         DimensionData biomeData = AntiqueAtlasMod.atlasData.getAtlasData(
@@ -257,7 +258,8 @@ public class AAORenderEventReceiver {
         drawMarkersData(localMarkersData, shape, biomeData, position);
 
         // get GL back to normal
-        GL11.glDisable(GL11.GL_SCISSOR_TEST);
+        if (!isBook)
+            GL11.glDisable(GL11.GL_SCISSOR_TEST);
         GlStateManager.color(1, 1, 1, 1);
     }
 

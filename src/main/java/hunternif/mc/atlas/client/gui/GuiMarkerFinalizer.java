@@ -86,7 +86,7 @@ public class GuiMarkerFinalizer extends GuiComponent {
 		scroller.removeAllContent();
 		int typeCount = 0;
 		for (MarkerType type : MarkerRegistry.getValues()) {
-			if(!type.isTechnical())
+			if(type.isVisibleInList())
 				typeCount++;
 		}
 		int allTypesWidth = typeCount *
@@ -104,15 +104,15 @@ public class GuiMarkerFinalizer extends GuiComponent {
         });
 		int contentX = 0;
 		for (MarkerType markerType : MarkerRegistry.getValues()) {
-			if(markerType.isTechnical())
-				continue;
-			GuiMarkerInList markerGui = new GuiMarkerInList(markerType);
-			typeRadioGroup.addButton(markerGui);
-			if (selectedType.equals(markerType)) {
-				typeRadioGroup.setSelectedButton(markerGui);
+			if(markerType.isVisibleInList()) {
+				GuiMarkerInList markerGui = new GuiMarkerInList(markerType);
+				typeRadioGroup.addButton(markerGui);
+				if (selectedType.equals(markerType)) {
+					typeRadioGroup.setSelectedButton(markerGui);
+				}
+				scroller.addContent(markerGui).setRelativeX(contentX);
+				contentX += GuiMarkerInList.FRAME_SIZE + TYPE_SPACING;
 			}
-			scroller.addContent(markerGui).setRelativeX(contentX);
-			contentX += GuiMarkerInList.FRAME_SIZE + TYPE_SPACING;
 		}
 	}
 

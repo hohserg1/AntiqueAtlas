@@ -1,6 +1,7 @@
 package hunternif.mc.atlas.client.ingame.book;
 
 import hunternif.mc.atlas.AntiqueAtlasMod;
+import hunternif.mc.atlas.client.IngameScaleToggler;
 import hunternif.mc.atlas.util.Rect;
 import kenkron.antiqueatlasoverlay.AAORenderEventReceiver;
 import net.minecraft.client.Minecraft;
@@ -16,13 +17,17 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.opengl.GL11;
 
+import static hunternif.mc.atlas.client.ingame.book.BookRenderer.PageFlipState.*;
 import static hunternif.mc.atlas.client.ingame.book.BookRenderer.RenderCase.*;
 import static hunternif.mc.atlas.client.ingame.book.BookRenderer.SwingState.*;
 import static hunternif.mc.atlas.client.ingame.book.Refs.*;
 import static net.minecraft.client.renderer.block.model.ItemCameraTransforms.TransformType.*;
 
+@SideOnly(Side.CLIENT)
 public class BookRenderer extends TileEntityItemStackRenderer {
 
     public static ItemCameraTransforms.TransformType cameraTransformType = FIRST_PERSON_LEFT_HAND;
@@ -31,16 +36,16 @@ public class BookRenderer extends TileEntityItemStackRenderer {
     ResourceLocation pages = new ResourceLocation(AntiqueAtlasMod.ID, "textures/models/book/page.png");
     BookModel model = new BookModel();
 
-    private Framebuffer pageTexture;
+    private Framebuffer pageTexture, nextPageTexture;
 
-    private Framebuffer pageTexture() {
-        if (pageTexture == null)
+    private void initFBO() {
+        if (pageTexture == null) {
             pageTexture = new Framebuffer(pageContainerWidth, pageHeight, false);
-
-        return pageTexture;
+            nextPageTexture = new Framebuffer(pageContainerWidth, pageHeight, false);
+        }
     }
 
-    public static enum RenderCase {
+    public enum RenderCase {
         right, left, both, other
     }
 
@@ -53,9 +58,18 @@ public class BookRenderer extends TileEntityItemStackRenderer {
     private static double prevF5 = 0;
     private static double prevF6 = 0;
 
+    public enum PageFlipState {
+        flipLeft, flipRight, normal;
+    }
+
+    private static PageFlipState pageFlipState = normal;
+
+    private static int flipProgress = 0;
+
 
     @Override
     public void renderByItem(ItemStack itemStackIn, float partialTicks) {
+        initFBO();
         partialTicks = Minecraft.getMinecraft().getRenderPartialTicks();
 
         ItemRenderer itemRenderer = Minecraft.getMinecraft().getItemRenderer();
@@ -180,12 +194,51 @@ public class BookRenderer extends TileEntityItemStackRenderer {
         model.renderCover((float) progress, openProgress, 0, scale);
 
 
-        model.setRotationAnglesPages((float) progress, 0.7f, openProgress);
+        int maxFlipTicks = 20;
 
-        Framebuffer fbo = pageTexture();
-        drawPageTo(fbo, atlas);
-        model.renderPageContainerLeft(fbo, scale);
-        model.renderPageContainerRight(fbo, scale);
+        model.setRotationAnglesPages((float) progress,
+                (float) (pageFlipState == normal ? 0 :
+                        pageFlipState == flipRight ?
+                                flipProgress + (1 - partialTicks) :
+                                flipProgress + partialTicks) / maxFlipTicks,
+                openProgress);
+
+        if (IngameScaleToggler.scaleChanged) {
+            IngameScaleToggler.scaleChanged = false;
+            pageFlipState = IngameScaleToggler.scaleChangeDir == 1 ? flipRight : flipLeft;
+            flipProgress = IngameScaleToggler.scaleChangeDir == 1 ? maxFlipTicks : 0;
+        }
+
+        if (pageFlipState == normal) {
+            drawPageTo(pageTexture, atlas);
+            model.renderPageContainerLeft(pageTexture, pageTexture, scale);
+            model.renderPageContainerRight(pageTexture, pageTexture, scale);
+
+        } else if (pageFlipState == flipRight) {
+            drawPageTo(nextPageTexture, atlas);
+            model.renderPageContainerLeft(pageTexture, nextPageTexture, scale);
+            model.renderPageContainerRight(nextPageTexture, pageTexture, scale);
+
+            flipProgress--;
+            if (flipProgress <= 0) {
+                pageFlipState = normal;
+                Framebuffer t = pageTexture;
+                pageTexture = nextPageTexture;
+                nextPageTexture = t;
+            }
+        } else if (pageFlipState == flipLeft) {
+            drawPageTo(nextPageTexture, atlas);
+            model.renderPageContainerLeft(nextPageTexture, pageTexture, scale);
+            model.renderPageContainerRight(pageTexture, nextPageTexture, scale);
+
+            flipProgress++;
+            if (flipProgress >= maxFlipTicks) {
+                pageFlipState = normal;
+                Framebuffer t = pageTexture;
+                pageTexture = nextPageTexture;
+                nextPageTexture = t;
+            }
+        }
 
         GlStateManager.color(1, 1, 1, 1);
         GlStateManager.bindTexture(0);

@@ -39,23 +39,25 @@ public class BookModel extends ModelBase {
         pagesLeft.render(scale);
     }
 
-    public void renderPageContainerRight(Framebuffer texture, double scale) {
+    public void renderPageContainerRight(Framebuffer rightTexture, Framebuffer flippingRightTexture, double scale) {
         setupStandartAttributes();
-        texture.bindFramebufferTexture();
+        rightTexture.bindFramebufferTexture();
         rightPage.render(scale);
+        flippingRightTexture.bindFramebufferTexture();
         flippingPageRight.render(scale);
-        texture.unbindFramebufferTexture();
+        rightTexture.unbindFramebufferTexture();
     }
 
-    public void renderPageContainerLeft(Framebuffer texture, double scale) {
+    public void renderPageContainerLeft(Framebuffer leftTexture, Framebuffer flippingLeftTexture,double scale) {
         setupStandartAttributes();
-        texture.bindFramebufferTexture();
-        if (Keyboard.isKeyDown(Keyboard.KEY_H))
-            FBODumper.dumped = false;
-        FBODumper.dump();
+        leftTexture.bindFramebufferTexture();
+        //if (Keyboard.isKeyDown(Keyboard.KEY_H))
+        //    FBODumper.dumped = false;
+        //FBODumper.dump();
         leftPage.render(scale);
+        flippingLeftTexture.bindFramebufferTexture();
         flippingPageLeft.render(scale);
-        texture.unbindFramebufferTexture();
+        leftTexture.unbindFramebufferTexture();
     }
 
 
@@ -95,8 +97,8 @@ public class BookModel extends ModelBase {
 
         rightPage.rotateAngleY = f;
         leftPage.rotateAngleY = -f;
-        flippingPageRight.rotateAngleY = -f;//f - f * 2 * flipping;
-        flippingPageLeft.rotateAngleY = f;//f - f * 2 * flipping;
+        flippingPageRight.rotateAngleY = f - f * 2 * flipping;
+        flippingPageLeft.rotateAngleY = f - f * 2 * flipping;
 
         rightPage.rotationPointX = MathHelper.sin(f);
         leftPage.rotationPointX = MathHelper.sin(f);

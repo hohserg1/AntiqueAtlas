@@ -50,6 +50,7 @@ public class PacketDispatcher
 		registerMessage(IntTilesPacket.class);
 		registerMessage(IntDimensionUpdatePacket.class);
 		registerMessage(OptionalMarkerPacket.class);
+		registerMessage(PickupSamplePacket.class);
 	}
 
 	/**

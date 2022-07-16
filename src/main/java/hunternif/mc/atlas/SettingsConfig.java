@@ -46,6 +46,9 @@ public class SettingsConfig {
         public double maxScale = 4;
         @Config.Comment({"If false (by default), then mousewheel up is zoom in, mousewheel down is zoom out.", "If true, then the direction is reversed."})
         public boolean doReverseWheelZoom = false;
+
+        @Config.RequiresMcRestart
+        public boolean enableBookRender = true;
     }
 
     //=========== Performance settings ============

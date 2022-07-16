@@ -2,8 +2,8 @@ package hunternif.mc.atlas;
 
 import hunternif.mc.atlas.core.AtlasDataHandler;
 import hunternif.mc.atlas.core.PlayerEventHandler;
-import hunternif.mc.atlas.ext.*;
-import hunternif.mc.atlas.ext.watcher.*;
+import hunternif.mc.atlas.ext.ExtBiomeDataHandler;
+import hunternif.mc.atlas.ext.watcher.DeathWatcher;
 import hunternif.mc.atlas.ext.watcher.impl.StructureWatcherFortress;
 import hunternif.mc.atlas.ext.watcher.impl.StructureWatcherGeneric;
 import hunternif.mc.atlas.ext.watcher.impl.StructureWatcherVillage;
@@ -11,7 +11,11 @@ import hunternif.mc.atlas.marker.GlobalMarkersDataHandler;
 import hunternif.mc.atlas.marker.MarkersDataHandler;
 import hunternif.mc.atlas.marker.NetherPortalWatcher;
 import hunternif.mc.atlas.network.PacketDispatcher;
+import hunternif.mc.atlas.registry.MarkerRegistry;
+import hunternif.mc.atlas.registry.MarkerType;
 import hunternif.mc.atlas.registry.MarkerTypes;
+import hunternif.mc.atlas.registry.TFCMarkerTypes;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.DimensionType;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
@@ -22,59 +26,75 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 
-@Mod(modid=AntiqueAtlasMod.ID, name=AntiqueAtlasMod.NAME, version=AntiqueAtlasMod.VERSION, dependencies="after:forge@[14.23.2.2611,);")
+@Mod(modid = AntiqueAtlasMod.ID, name = AntiqueAtlasMod.NAME, version = AntiqueAtlasMod.VERSION, dependencies = "after:forge@[14.23.2.2611,);after:tfc")
 public class AntiqueAtlasMod {
-	public static final String ID = "antiqueatlas";
-	public static final String NAME = "Antique Atlas";
-	public static final String CHANNEL = ID;
-	public static final String VERSION = "@VERSION@";
+    public static final String ID = "antiqueatlas";
+    public static final String NAME = "Antique Atlas";
+    public static final String CHANNEL = ID;
+    public static final String VERSION = "@VERSION@";
 
-	@Instance(ID)
-	public static AntiqueAtlasMod instance;
+    @Instance(ID)
+    public static AntiqueAtlasMod instance;
 
-	public boolean jeidPresent = false;
+    public boolean jeidPresent = false;
 
-	@SidedProxy(clientSide="hunternif.mc.atlas.ClientProxy", serverSide="hunternif.mc.atlas.CommonProxy")
-	public static CommonProxy proxy;
+    @SidedProxy(clientSide = "hunternif.mc.atlas.ClientProxy", serverSide = "hunternif.mc.atlas.CommonProxy")
+    public static CommonProxy proxy;
 
-	public static final AtlasDataHandler atlasData = new AtlasDataHandler();
-	public static final MarkersDataHandler markersData = new MarkersDataHandler();
+    public static final AtlasDataHandler atlasData = new AtlasDataHandler();
+    public static final MarkersDataHandler markersData = new MarkersDataHandler();
 
-	public static final ExtBiomeDataHandler extBiomeData = new ExtBiomeDataHandler();
-	public static final GlobalMarkersDataHandler globalMarkersData = new GlobalMarkersDataHandler();
+    public static final ExtBiomeDataHandler extBiomeData = new ExtBiomeDataHandler();
+    public static final GlobalMarkersDataHandler globalMarkersData = new GlobalMarkersDataHandler();
 
-	@EventHandler
-	public void preInit(FMLPreInitializationEvent event) {
-		proxy.preInit(event);
-	}
+    @EventHandler
+    public void preInit(FMLPreInitializationEvent event) {
+        proxy.preInit(event);
+    }
 
-	@EventHandler
-	public void init(FMLInitializationEvent event){
-		PacketDispatcher.registerPackets();
-		proxy.init(event);
+    @EventHandler
+    public void init(FMLInitializationEvent event) {
+        PacketDispatcher.registerPackets();
+        proxy.init(event);
 
-		if (!SettingsConfig.gameplay.itemNeeded)
+        if (!SettingsConfig.gameplay.itemNeeded)
             MinecraftForge.EVENT_BUS.register(new PlayerEventHandler());
 
-		MinecraftForge.EVENT_BUS.register(atlasData);
-		MinecraftForge.EVENT_BUS.register(markersData);
+        MinecraftForge.EVENT_BUS.register(atlasData);
+        MinecraftForge.EVENT_BUS.register(markersData);
 
-		MinecraftForge.EVENT_BUS.register(extBiomeData);
+        MinecraftForge.EVENT_BUS.register(extBiomeData);
 
-		MinecraftForge.EVENT_BUS.register(globalMarkersData);
+        MinecraftForge.EVENT_BUS.register(globalMarkersData);
 
-		MinecraftForge.EVENT_BUS.register(new DeathWatcher());
+        MinecraftForge.EVENT_BUS.register(new DeathWatcher());
 
-		MinecraftForge.EVENT_BUS.register(new NetherPortalWatcher());
+        MinecraftForge.EVENT_BUS.register(new NetherPortalWatcher());
 
-		// Structure Watchers
-		MinecraftForge.EVENT_BUS.register(new StructureWatcherVillage()); // register for OptionalMarkerEvent
+        // Structure Watchers
+        MinecraftForge.EVENT_BUS.register(new StructureWatcherVillage()); // register for OptionalMarkerEvent
         new StructureWatcherFortress();
-		new StructureWatcherGeneric("EndCity", DimensionType.THE_END, MarkerTypes.END_CITY_FAR, "gui.antiqueatlas.marker.endcity").setTileMarker(MarkerTypes.END_CITY, "gui.antiqueatlas.marker.endcity");
-	}
+        new StructureWatcherGeneric("EndCity", DimensionType.THE_END, MarkerTypes.END_CITY_FAR, "gui.antiqueatlas.marker.endcity").setTileMarker(MarkerTypes.END_CITY, "gui.antiqueatlas.marker.endcity");
+    }
 
-	@EventHandler
-	public void postInit(FMLPostInitializationEvent event) {
-		proxy.postInit(event);
-	}
+    @EventHandler
+    public void postInit(FMLPostInitializationEvent event) {
+        proxy.postInit(event);
+        TFCMarkerTypes.init();
+
+        initIEMarkerIcon();
+    }
+
+    private void initIEMarkerIcon() {
+        ResourceLocation textureLoc = new ResourceLocation("antiqueatlas", "textures/gui/markers/ie_sample.png");
+
+        MarkerType type = new MarkerType(new ResourceLocation("ie:deep_sample"), textureLoc) {
+            @Override
+            public boolean isVisibleInList() {
+                return false;
+            }
+        };
+        type.setSize(1);
+        MarkerRegistry.register(type);
+    }
 }
