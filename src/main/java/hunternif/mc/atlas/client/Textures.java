@@ -10,7 +10,7 @@ public class Textures {
 	private static final String GUI_TILES = GUI + "tiles/";
 	private static final String GUI_MARKERS = GUI + "markers/";
 	private static final String GUI_SCALEBAR = GUI + "scalebar/";
-	
+
 	public static final ResourceLocation
 	BOOK = gui("book.png"),
 	EXPORTED_BG = gui("exported_bg.png"),
@@ -18,6 +18,7 @@ public class Textures {
 	BTN_ARROWS = gui("navigate_arrows.png"),
 	BTN_POSITION = gui("position.png"),
 	BOOKMARKS = gui("bookmarks.png"),
+	FILTERING_BOOKMARKS = gui("filtering_bookmark.png"),
 	PLAYER = gui("player.png"),
 	SCROLLBAR_HOR = gui("scrollbar_hor.png"),
 	SCROLLBAR_VER = gui("scrollbar_ver.png"),
@@ -41,7 +42,9 @@ public class Textures {
 	ICON_PASTE_MARKER = icon("paste_marker.png"),
 	ICON_SHOW_MARKERS = icon("show_markers.png"),
 	ICON_HIDE_MARKERS = icon("hide_markers.png"),
+	ICON_FILTER_MARKERS = icon("filter_markers.png"),
 	ICON_EXPORT = icon("export.png"),
+	ICON_PUBLISH = icon("publish.png"),
 
 	MARKER_GOOGLE_MARKER = marker("google_marker.png"),
 	MARKER_RED_X_LARGE = marker("red_x_large.png"),

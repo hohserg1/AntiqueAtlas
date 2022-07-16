@@ -25,3 +25,6 @@ gui.antiqueatlas.export.writing=Запись в файл...
 
 key.openatlas.desc=Открыть атлас
 key.antiqueatlas.category=Antique Atlas
+
+gui.antiqueatlas.filterMarkers=Фильтровать маркеры
+gui.antiqueatlas.publishMarker=Поделиться маркером

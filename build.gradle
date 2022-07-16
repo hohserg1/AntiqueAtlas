@@ -85,16 +85,16 @@ dependencies {
     implementation fg.deobf("abc:ImmersiveEngineering:0.12.107")
     implementation fg.deobf("abc:immersivepetroleum-1.12.2:1.1.10")
     //implementation fg.deobf("abc:OptiFine:1.12.2_HD_U_G5")
-    implementation "abc:OptiFine:1.12.2_HD_U_G5_dev"
-    implementation ("net.minecraft:launchwrapper:"){
+    //implementation "abc:OptiFine:1.12.2_HD_U_G5_dev"
+    /*implementation ("net.minecraft:launchwrapper:"){
         version {
             strictly 'of-2.2'
         }
-    }
+    }*/
 
     implementation fg.deobf("dev_mods:ResourceReloader:1.0.2.5")
 
-    testImplementation "junit:junit:4.+"
+    //testImplementation "junit:junit:4.+"
 }
 
 /*

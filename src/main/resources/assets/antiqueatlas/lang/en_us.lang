@@ -38,3 +38,6 @@ gui.antiqueatlas.export.rendering.markers=Rendering markers
 
 key.openatlas.desc=Open Atlas
 key.antiqueatlas.category=Antique Atlas
+
+gui.antiqueatlas.filterMarkers=Filter Markers
+gui.antiqueatlas.publishMarker=Share Marker
