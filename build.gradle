@@ -26,6 +26,10 @@ archivesBaseName = "antiqueatlas"
 ext.mod_version = "$version_major.$version_minor.$version_patch"
 version = "$mc_version-$mod_version"
 
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
 sourceCompatibility = targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
 compileJava {
     sourceCompatibility = targetCompatibility = '1.8'
@@ -34,7 +38,11 @@ compileJava {
 minecraft {
     mappings channel: 'stable', version: '39-1.12'
 
-    accessTransformer = file('src/main/resources/META-INF/atlas_at.cfg')
+    accessTransformer = files(
+            'src/main/resources/META-INF/atlas_at.cfg',
+            'src/main/resources/META-INF/tfc_at.cfg',
+            'src/main/resources/META-INF/ImmersiveEngineering_at.cfg'
+    )
 
     runs {
         client {
@@ -60,14 +68,30 @@ minecraft {
 
 repositories {
     flatDir {
+        dirs 'libs'
+    }
+    flatDir {
         dirs 'dev_mods'
     }
 }
 
 dependencies {
-    minecraft "net.minecraftforge:forge:$mc_version-$forge_version"
+    minecraft ("net.minecraftforge:forge:$mc_version-$forge_version"){
 
-    implementation fg.deobf("dev_mods:wi-zoom:v1.1")
+    }
+
+    implementation fg.deobf("abc:crafttweaker2:4.1.20.660")
+    implementation fg.deobf("abc:TerraFirmaCraft:1.7.23.181")
+    implementation fg.deobf("abc:ImmersiveEngineering:0.12.107")
+    implementation fg.deobf("abc:immersivepetroleum-1.12.2:1.1.10")
+    //implementation fg.deobf("abc:OptiFine:1.12.2_HD_U_G5")
+    implementation "abc:OptiFine:1.12.2_HD_U_G5_dev"
+    implementation ("net.minecraft:launchwrapper:"){
+        version {
+            strictly 'of-2.2'
+        }
+    }
+
     implementation fg.deobf("dev_mods:ResourceReloader:1.0.2.5")
 
     testImplementation "junit:junit:4.+"
@@ -94,6 +118,14 @@ processResources {
 */
 
 jar.finalizedBy('reobfJar')
+
+jar {
+    manifest {
+        attributes([
+                'FMLAT': 'atlas_at.cfg'
+        ])
+    }
+}
 
 task deobfJar(type: Jar) {
     from sourceSets.main.output
