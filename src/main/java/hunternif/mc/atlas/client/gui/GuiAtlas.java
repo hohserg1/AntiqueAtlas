@@ -116,6 +116,25 @@ public class GuiAtlas extends GuiComponent {
         }
     };
 
+    private final IState PUBLISHING_MARKER = new IState() {
+        @Override
+        public void onEnterState() {
+            CustomMouseHeler.grabMouseCursor();
+            addChild(publisherCursor);
+            btnPublishMarker.setSelected(true);
+
+        }
+
+        @Override
+        public void onExitState() {
+            CustomMouseHeler.ungrabMouseCursor();
+            removeChild(publisherCursor);
+            btnPublishMarker.setSelected(true);
+        }
+    };
+
+    private final GuiCursor publisherCursor = new GuiCursor();
+
     /**
      * If on, a semi-transparent marker is attached to the cursor, and the
      * player's icon becomes semi-transparent as well.
@@ -139,18 +158,18 @@ public class GuiAtlas extends GuiComponent {
         @Override
         public void onEnterState() {
             CustomMouseHeler.grabMouseCursor();
-            addChild(eraser);
+            addChild(eraserCursor);
             btnDelMarker.setSelected(true);
         }
 
         @Override
         public void onExitState() {
             CustomMouseHeler.ungrabMouseCursor();
-            removeChild(eraser);
+            removeChild(eraserCursor);
             btnDelMarker.setSelected(false);
         }
     };
-    private final GuiCursor eraser = new GuiCursor();
+    private final GuiCursor eraserCursor = new GuiCursor();
 
     /**
      * If on, the closest marker will be copied upon mouseclick.
@@ -160,19 +179,19 @@ public class GuiAtlas extends GuiComponent {
         @Override
         public void onEnterState() {
             CustomMouseHeler.grabMouseCursor();
-            addChild(copier);
+            addChild(copierCursor);
             btnCopyMarker.setSelected(true);
         }
 
         @Override
         public void onExitState() {
             CustomMouseHeler.ungrabMouseCursor();
-            removeChild(copier);
+            removeChild(copierCursor);
             btnCopyMarker.setSelected(false);
 
         }
     };
-    private final GuiCursor copier = new GuiCursor();
+    private final GuiCursor copierCursor = new GuiCursor();
 
     private final IState EXPORTING_IMAGE = new IState() {
         @Override
@@ -394,8 +413,19 @@ public class GuiAtlas extends GuiComponent {
             }
         });
 
-        btnPublishMarker = new GuiBookmarkButton(1, Textures.ICON_PUBLISH , I18n.format("gui.antiqueatlas.publishMarker"));
+        btnPublishMarker = new GuiBookmarkButton(1, Textures.ICON_PUBLISH, I18n.format("gui.antiqueatlas.publishMarker"));
         addChild(btnPublishMarker).offsetGuiCoords(300, 136);
+        btnPublishMarker.addListener(button -> {
+            if (stack != null || !SettingsConfig.gameplay.itemNeeded) {
+                if (state.is(PUBLISHING_MARKER)) {
+                    selectedButton = null;
+                    state.switchTo(NORMAL);
+                } else {
+                    selectedButton = button;
+                    state.switchTo(PUBLISHING_MARKER);
+                }
+            }
+        });
 
         btnMarker = new GuiBookmarkButton(0, Textures.ICON_ADD_MARKER, I18n.format("gui.antiqueatlas.addMarker"));
         addChild(btnMarker).offsetGuiCoords(300, 14);
@@ -494,8 +524,9 @@ public class GuiAtlas extends GuiComponent {
 
         markerFinalizer.addListener(blinkingIcon);
 
-        eraser.setTexture(Textures.ERASER, 12, 14, 2, 11);
-        copier.setTexture(Textures.COPIER, 12, 14, 2, 11);
+        eraserCursor.setTexture(Textures.ERASER, 12, 14, 2, 11);
+        copierCursor.setTexture(Textures.COPIER, 12, 14, 2, 11);
+        publisherCursor.setTexture(Textures.PUBLISHER, 12, 14, 2, 11);
     }
 
     public GuiAtlas prepareToOpen(ItemStack stack) {
@@ -574,6 +605,8 @@ public class GuiAtlas extends GuiComponent {
                             atlasID, hoveredMarker.getId());
                 else if (state.is(COPYING_MARKER))
                     copyMarker(hoveredMarker);
+                else if (state.is(PUBLISHING_MARKER))
+                    publishMarker(hoveredMarker);
             }
             state.switchTo(NORMAL);
         } else if (isMouseOverMap && selectedButton == null) {
@@ -585,6 +618,14 @@ public class GuiAtlas extends GuiComponent {
                 dragMapOffsetY = mapOffsetY;
             }
         }
+    }
+
+    private void publishMarker(Marker marker) {
+        selectedButton = null;
+        btnPublishMarker.setSelected(false);
+        state.switchTo(NORMAL);
+
+        sendChatMessage("%marker%/" + marker.getLabel() + "§" + marker.getX() + "§" + marker.getZ() + "§" + marker.getType(), false);
     }
 
     private static Marker copiedMarker;
@@ -687,13 +728,14 @@ public class GuiAtlas extends GuiComponent {
             }
             // Close the GUI if a hotbar key is pressed
             else {
+                /*
                 KeyBinding[] hotbarKeys = mc.gameSettings.keyBindsHotbar;
                 for (KeyBinding bind : hotbarKeys) {
                     if (key == bind.getKeyCode()) {
                         close();
                         break;
                     }
-                }
+                }*/
             }
         }
     }

@@ -26,6 +26,7 @@ public class Textures {
 	MARKER_FRAME_OFF = gui("marker_frame_off.png"),
 	ERASER = gui("eraser.png"),
 	COPIER = gui("copier.png"),
+	PUBLISHER = gui("publisher.png"),
 
 	SCALEBAR_4 = scaleBar("scalebar_4.png"),
 	SCALEBAR_8 = scaleBar("scalebar_8.png"),
