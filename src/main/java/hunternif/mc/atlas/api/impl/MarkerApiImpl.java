@@ -47,8 +47,7 @@ public class MarkerApiImpl implements MarkerAPI {
 			if (atlasID == GLOBAL) {
 				Log.warn("Client tried to add a global marker!");
 			} else {
-				PacketDispatcher.sendToServer(new AddMarkerPacket(atlasID,
-						world.provider.getDimension(), markerType, label, x, z, visibleAhead));
+				PacketDispatcher.sendToServer(new AddMarkerPacket(atlasID, world.provider.getDimension(), markerType, label, x, z, visibleAhead));
 			}
 		} else {
 			if (atlasID == GLOBAL) {

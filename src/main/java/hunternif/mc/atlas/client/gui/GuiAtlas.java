@@ -122,14 +122,13 @@ public class GuiAtlas extends GuiComponent {
             CustomMouseHeler.grabMouseCursor();
             addChild(publisherCursor);
             btnPublishMarker.setSelected(true);
-
         }
 
         @Override
         public void onExitState() {
             CustomMouseHeler.ungrabMouseCursor();
             removeChild(publisherCursor);
-            btnPublishMarker.setSelected(true);
+            btnPublishMarker.setSelected(false);
         }
     };
 
@@ -526,7 +525,7 @@ public class GuiAtlas extends GuiComponent {
 
         eraserCursor.setTexture(Textures.ERASER, 12, 14, 2, 11);
         copierCursor.setTexture(Textures.COPIER, 12, 14, 2, 11);
-        publisherCursor.setTexture(Textures.PUBLISHER, 12, 14, 2, 11);
+        publisherCursor.setTexture(Textures.PUBLISHER, 12, 14, 3, 8);
     }
 
     public GuiAtlas prepareToOpen(ItemStack stack) {
@@ -625,7 +624,11 @@ public class GuiAtlas extends GuiComponent {
         btnPublishMarker.setSelected(false);
         state.switchTo(NORMAL);
 
-        sendChatMessage("%marker%/" + marker.getLabel() + "§" + marker.getX() + "§" + marker.getZ() + "§" + marker.getType(), false);
+        sendChatMessage(PublishingMarkerHandler.prefix +
+                marker.getLabel() + PublishingMarkerHandler.separator +
+                marker.getX() + PublishingMarkerHandler.separator +
+                marker.getZ() + PublishingMarkerHandler.separator +
+                marker.getType(), false);
     }
 
     private static Marker copiedMarker;

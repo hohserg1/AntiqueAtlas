@@ -53,7 +53,7 @@ public class AAORenderEventReceiver {
      * the player is currently carrying in the hotbar/offhand. Returns null if
      * there are none. Offhand gets priority.
      **/
-    private static Integer getPlayerAtlas(EntityPlayer player) {
+    public static Integer getPlayerAtlas(EntityPlayer player) {
         if (!SettingsConfig.gameplay.itemNeeded) {
             return player.getUniqueID().hashCode();
         }
