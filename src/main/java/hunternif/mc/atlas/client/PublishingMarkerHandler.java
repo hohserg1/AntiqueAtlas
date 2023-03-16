@@ -20,7 +20,7 @@ import static kenkron.antiqueatlasoverlay.AAORenderEventReceiver.getPlayerAtlas;
 public class PublishingMarkerHandler {
 
     public static final String prefix = "%marker%/";
-    public static final String separator = "&&";
+    public static final String separator = "##";
 
     @SubscribeEvent
     public static void onChatMsg(ClientChatReceivedEvent event) {
