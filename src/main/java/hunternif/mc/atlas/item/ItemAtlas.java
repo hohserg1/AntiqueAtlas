@@ -11,6 +11,7 @@ import hunternif.mc.atlas.network.client.*;
 import hunternif.mc.atlas.util.MathUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ActionResult;
@@ -72,7 +73,7 @@ public class ItemAtlas extends Item {
 				for (TileInfo t : newTiles) {
 					packet.addTile(t.x, t.z, t.biome);
 				}
-				PacketDispatcher.sendToAll(packet);
+				PacketDispatcher.sendTo(packet, (EntityPlayerMP) player);
 			}
 		}
 	}
