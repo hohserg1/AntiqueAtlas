@@ -17,13 +17,14 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.relauncher.Side;
 
 import java.util.List;
 
 import static hunternif.mc.atlas.RegistrarAntiqueAtlas.ATLAS;
 import static hunternif.mc.atlas.registry.TFCMarkerTypes.gradePrefix;
 
-@Mod.EventBusSubscriber(modid = AntiqueAtlasMod.ID)
+@Mod.EventBusSubscriber(modid = "tfc", value = Side.CLIENT)
 public class TFCPropickHandler {
 
     @SubscribeEvent

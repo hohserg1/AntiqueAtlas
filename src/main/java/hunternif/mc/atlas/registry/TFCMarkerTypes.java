@@ -4,11 +4,6 @@ import net.dries007.tfc.api.types.Ore;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 public class TFCMarkerTypes {
     public static void init() {
         for (Ore o : GameRegistry.findRegistry(Ore.class).getValuesCollection()) {

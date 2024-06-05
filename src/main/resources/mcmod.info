@@ -3,7 +3,7 @@
     "modid": "antiqueatlas",
     "name": "Antique Atlas",
     "description": "Antique Atlas is a book that acts like a map featuring infinite scrolling, zoom and custom labeled markers. The map is generated around the player by calculating the average biome in each 16x16 chunk.",
-    "version": "4.8.5",
+    "version": "4.9.3",
     "mcversion": "1.12.2",
     "url": "http://www.minecraftforum.net/topic/2045745",
     "updateUrl": "",
