@@ -9,6 +9,7 @@ import hunternif.mc.atlas.network.server.BrowsingPositionPacket;
 import hunternif.mc.atlas.network.server.RegisterTileIdPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
@@ -17,7 +18,7 @@ import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import net.minecraftforge.fml.relauncher.Side;
 
 /**
- * 
+ *
  * A wrapper class for the SimpleNetworkWrapper
  *
  */
@@ -50,7 +51,9 @@ public class PacketDispatcher
 		registerMessage(IntTilesPacket.class);
 		registerMessage(IntDimensionUpdatePacket.class);
 		registerMessage(OptionalMarkerPacket.class);
-		registerMessage(PickupSamplePacket.class);
+
+		if(Loader.isModLoaded("immersiveengineering"))
+			registerMessage(PickupSamplePacket.class);
 	}
 
 	/**

@@ -5,13 +5,12 @@ import blusunrize.immersiveengineering.common.util.ItemNBTHelper;
 import hunternif.mc.atlas.AntiqueAtlasMod;
 import hunternif.mc.atlas.network.PacketDispatcher;
 import hunternif.mc.atlas.network.client.PickupSamplePacket;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.Optional;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent;
 
@@ -20,6 +19,7 @@ import static hunternif.mc.atlas.RegistrarAntiqueAtlas.ATLAS;
 @Mod.EventBusSubscriber(modid = AntiqueAtlasMod.ID)
 public class ImmersiveCoreDrillHandler {
 
+    @Optional.Method(modid = "immersiveengineering")
     @SubscribeEvent
     public static void onPickupSample(PlayerEvent.ItemPickupEvent event) {
         EntityPlayer player = event.player;
