@@ -1,0 +1,6 @@
+{
+  "parent": "antiqueatlas:item/astrolabe/transformation",
+  "textures": {
+    "layer0": "antiqueatlas:items/astrolabe/8"
+  }
+}

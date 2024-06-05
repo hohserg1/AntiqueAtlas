@@ -49,45 +49,47 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import static net.minecraft.util.math.MathHelper.clamp;
+
 public class GuiAtlas extends GuiComponent {
     public static final int WIDTH = 310;
     public static final int HEIGHT = 218;
-    private static final int CONTENT_X = 17;
-    private static final int CONTENT_Y = 11;
+    protected static final int CONTENT_X = 17;
+    protected static final int CONTENT_Y = 11;
 
-    private static final int MAP_WIDTH = WIDTH - 17 * 2;
-    private static final int MAP_HEIGHT = 194;
-    private static final float PLAYER_ROTATION_STEPS = 16;
-    private static final int PLAYER_ICON_WIDTH = 7;
-    private static final int PLAYER_ICON_HEIGHT = 8;
+    protected static final int MAP_WIDTH = WIDTH - 17 * 2;
+    protected static final int MAP_HEIGHT = 194;
+    protected static final float PLAYER_ROTATION_STEPS = 16;
+    protected static final int PLAYER_ICON_WIDTH = 7;
+    protected static final int PLAYER_ICON_HEIGHT = 8;
 
     public static final int MARKER_SIZE = 32;
 
-    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss");
+    protected static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss");
 
     /**
      * If the map scale goes below this value, the tiles will not scale down
      * visually, but will instead span greater area.
      */
-    private static final double MIN_SCALE_THRESHOLD = 0.5;
+    protected static final double MIN_SCALE_THRESHOLD = 0.5;
 
-    private final long[] renderTimes = new long[30];
+    protected final long[] renderTimes = new long[30];
 
-    private int renderTimesIndex = 0;
+    protected int renderTimesIndex = 0;
 
     // States ==================================================================
 
-    private final GuiStates state = new GuiStates();
+    protected final GuiStates state = new GuiStates();
 
     /**
      * If on, navigate the map normally.
      */
-    private final IState NORMAL = new SimpleState();
+    protected final IState NORMAL = new SimpleState();
 
     /**
      * If on, all markers as well as the player icon are hidden.
      */
-    private final IState HIDING_MARKERS = new IState() {
+    protected final IState HIDING_MARKERS = new IState() {
         @Override
         public void onEnterState() {
             // Set the button as not selected so that it can be clicked again:
@@ -104,7 +106,7 @@ public class GuiAtlas extends GuiComponent {
         }
     };
 
-    private final IState FILTERING_MARKERS = new IState() {
+    protected final IState EDITING_FILTER = new IState() {
         @Override
         public void onEnterState() {
             btnFilterMarkers.show();
@@ -112,11 +114,14 @@ public class GuiAtlas extends GuiComponent {
 
         @Override
         public void onExitState() {
-            btnFilterMarkers.hide();
+            if (btnFilterMarkers.getText().isEmpty())
+                btnFilterMarkers.hide();
+            else
+                btnFilterMarkers.unfocus();
         }
     };
 
-    private final IState PUBLISHING_MARKER = new IState() {
+    protected final IState PUBLISHING_MARKER = new IState() {
         @Override
         public void onEnterState() {
             CustomMouseHeler.grabMouseCursor();
@@ -132,13 +137,13 @@ public class GuiAtlas extends GuiComponent {
         }
     };
 
-    private final GuiCursor publisherCursor = new GuiCursor();
+    protected final GuiCursor publisherCursor = new GuiCursor();
 
     /**
      * If on, a semi-transparent marker is attached to the cursor, and the
      * player's icon becomes semi-transparent as well.
      */
-    private final IState PLACING_MARKER = new IState() {
+    protected final IState PLACING_MARKER = new IState() {
         @Override
         public void onEnterState() {
             btnMarker.setSelected(true);
@@ -153,7 +158,7 @@ public class GuiAtlas extends GuiComponent {
     /**
      * If on, the closest marker will be deleted upon mouseclick.
      */
-    private final IState DELETING_MARKER = new IState() {
+    protected final IState DELETING_MARKER = new IState() {
         @Override
         public void onEnterState() {
             CustomMouseHeler.grabMouseCursor();
@@ -168,12 +173,12 @@ public class GuiAtlas extends GuiComponent {
             btnDelMarker.setSelected(false);
         }
     };
-    private final GuiCursor eraserCursor = new GuiCursor();
+    protected final GuiCursor eraserCursor = new GuiCursor();
 
     /**
      * If on, the closest marker will be copied upon mouseclick.
      */
-    private final IState COPYING_MARKER = new IState() {
+    protected final IState COPYING_MARKER = new IState() {
 
         @Override
         public void onEnterState() {
@@ -190,9 +195,9 @@ public class GuiAtlas extends GuiComponent {
 
         }
     };
-    private final GuiCursor copierCursor = new GuiCursor();
+    protected final GuiCursor copierCursor = new GuiCursor();
 
-    private final IState EXPORTING_IMAGE = new IState() {
+    protected final IState EXPORTING_IMAGE = new IState() {
         @Override
         public void onEnterState() {
             btnExportPng.setSelected(true);
@@ -209,47 +214,47 @@ public class GuiAtlas extends GuiComponent {
     /**
      * Arrow buttons for navigating the map view via mouse clicks.
      */
-    private final GuiArrowButton btnUp, btnDown, btnLeft, btnRight;
+    protected final GuiArrowButton btnUp, btnDown, btnLeft, btnRight;
 
     /**
      * Button for exporting PNG image of the Atlas's contents.
      */
-    private final GuiBookmarkButton btnExportPng;
+    protected final GuiBookmarkButton btnExportPng;
 
     /**
      * Button for publishing marker to chat
      */
-    private final GuiBookmarkButton btnPublishMarker;
+    protected final GuiBookmarkButton btnPublishMarker;
 
     /**
      * Button for placing a marker at current position, local to this Atlas instance.
      */
-    private final GuiBookmarkButton btnMarker;
+    protected final GuiBookmarkButton btnMarker;
 
     /**
      * Button for deleting local markers.
      */
-    private final GuiBookmarkButton btnDelMarker;
+    protected final GuiBookmarkButton btnDelMarker;
 
     /**
      * Button for copying local markers.
      */
-    private final GuiBookmarkButton btnCopyMarker;
+    protected final GuiBookmarkButton btnCopyMarker;
 
     /**
      * Button for showing/hiding all markers.
      */
-    private final GuiBookmarkButton btnShowMarkers;
+    protected final GuiBookmarkButton btnShowMarkers;
 
     /**
      * Button for filtrating markers by name.
      */
-    private final GuiFilterButton btnFilterMarkers;
+    protected final GuiFilterButton btnFilterMarkers;
 
     /**
      * Button for restoring player's position at the center of the Atlas.
      */
-    private final GuiPositionButton btnPosition;
+    protected final GuiPositionButton btnPosition;
 
 
     // Navigation ==============================================================
@@ -258,66 +263,66 @@ public class GuiAtlas extends GuiComponent {
      * Pause between after the arrow button is pressed and continuous
      * navigation starts, in ticks.
      */
-    private static final int BUTTON_PAUSE = 8;
+    protected static final int BUTTON_PAUSE = 8;
 
     /**
      * How much the map view is offset, in blocks, per click (or per tick).
      */
-    private static final int navigateStep = 24;
+    protected static final int navigateStep = 24;
 
     /**
      * The button which is currently being pressed. Used for continuous
      * navigation using the arrow buttons. Also used to prevent immediate
      * canceling of placing marker.
      */
-    private GuiComponentButton selectedButton = null;
+    protected GuiComponentButton selectedButton = null;
 
     /**
      * Time in world ticks when the button was pressed. Used to create a pause
      * before continuous navigation using the arrow buttons.
      */
-    private long timeButtonPressed = 0;
+    protected long timeButtonPressed = 0;
 
     /**
      * Set to true when dragging the map view.
      */
-    private boolean isDragging = false;
+    protected boolean isDragging = false;
     /**
      * The starting cursor position when dragging.
      */
-    private int dragMouseX, dragMouseY;
+    protected int dragMouseX, dragMouseY;
     /**
      * Map offset at the beginning of drag.
      */
-    private int dragMapOffsetX, dragMapOffsetY;
+    protected int dragMapOffsetX, dragMapOffsetY;
 
     /**
      * Offset to the top left corner of the tile at (0, 0) from the center of
      * the map drawing area, in pixels.
      */
-    private int mapOffsetX, mapOffsetY;
+    protected int mapOffsetX, mapOffsetY;
     /**
      * If true, the player's icon will be in the center of the GUI, and the
      * offset of the tiles will be calculated accordingly. Otherwise it's the
      * position of the player that will be calculated with respect to the
      * offset.
      */
-    private boolean followPlayer = true;
+    protected boolean followPlayer = true;
 
-    private final GuiScaleBar scaleBar = new GuiScaleBar();
+    protected final GuiScaleBar scaleBar = new GuiScaleBar();
 
     /**
      * Pixel-to-block ratio.
      */
-    private double mapScale;
+    protected double mapScale;
     /**
      * The visual size of a tile in pixels.
      */
-    private int tileHalfSize;
+    protected int tileHalfSize;
     /**
      * The number of chunks a tile spans.
      */
-    private int tile2ChunkScale;
+    protected int tile2ChunkScale;
 
 
     // Markers =================================================================
@@ -325,43 +330,44 @@ public class GuiAtlas extends GuiComponent {
     /**
      * Local markers in the current dimension
      */
-    private DimensionMarkersData localMarkersData;
+    protected DimensionMarkersData localMarkersData;
     /**
      * The marker highlighted by the eraser. Even though multiple markers may
      * be highlighted at the same time, only one of them will be deleted.
      */
-    private Marker hoveredMarker;
+    protected Marker hoveredMarker;
+    protected Marker hoveredOuterMarker;
 
-    private final GuiMarkerFinalizer markerFinalizer = new GuiMarkerFinalizer();
+    protected final GuiMarkerFinalizer markerFinalizer = new GuiMarkerFinalizer();
     /**
      * Displayed where the marker is about to be placed when the Finalizer GUI is on.
      */
-    private final GuiBlinkingMarker blinkingIcon = new GuiBlinkingMarker();
+    protected final GuiBlinkingMarker blinkingIcon = new GuiBlinkingMarker();
 
     // Misc stuff ==============================================================
 
-    private EntityPlayer player;
-    private ItemStack stack;
-    private DimensionData biomeData;
+    protected EntityPlayer player;
+    protected ItemStack stack;
+    protected DimensionData biomeData;
 
     /**
      * Coordinate scale factor relative to the actual screen size.
      */
-    private int screenScale;
+    protected int screenScale;
 
     /**
      * Progress bar for exporting images.
      */
-    private final ProgressBarOverlay progressBar = new ProgressBarOverlay(100, 2);
+    protected final ProgressBarOverlay progressBar = new ProgressBarOverlay(100, 2);
 
-    private long lastUpdateMillis = System.currentTimeMillis();
-    private int scaleAlpha = 255;
-    private int scaleClipIndex = 0;
-    private int zoomLevelOne = 8;
-    private int zoomLevel = zoomLevelOne;
-    private String[] zoomNames = new String[]{"256", "128", "64", "32", "16", "8", "4", "2", "1", "1/2", "1/4", "1/8", "1/16", "1/32", "1/64", "1/128", "1/256"};
+    protected long lastUpdateMillis = System.currentTimeMillis();
+    protected int scaleAlpha = 255;
+    protected int scaleClipIndex = 0;
+    protected int zoomLevelOne = 8;
+    protected int zoomLevel = zoomLevelOne;
+    protected String[] zoomNames = new String[]{"256", "128", "64", "32", "16", "8", "4", "2", "1", "1/2", "1/4", "1/8", "1/16", "1/32", "1/64", "1/128", "1/256"};
 
-    private Thread exportThread;
+    protected Thread exportThread;
 
     @SuppressWarnings("rawtypes")
     public GuiAtlas() {
@@ -506,12 +512,14 @@ public class GuiAtlas extends GuiComponent {
         btnFilterMarkers.addListener2(mouseBtn -> {
             if (stack != null || !SettingsConfig.gameplay.itemNeeded) {
                 if (mouseBtn == 1/*rmc*/) {
-                    state.switchTo(NORMAL);
-                    btnFilterMarkers.setSelected(false);
-                    selectedButton = null;
+                    btnFilterMarkers.clear();
+                    if (!state.is(EDITING_FILTER))
+                        state.switchTo(EDITING_FILTER);
+                    btnFilterMarkers.setSelected(true);
+                    selectedButton = btnFilterMarkers;
                 } else { /*lmc*/
-                    if (!state.is(FILTERING_MARKERS))
-                        state.switchTo(FILTERING_MARKERS);
+                    if (!state.is(EDITING_FILTER))
+                        state.switchTo(EDITING_FILTER);
                     btnFilterMarkers.setSelected(true);
                     selectedButton = btnFilterMarkers;
                 }
@@ -576,10 +584,18 @@ public class GuiAtlas extends GuiComponent {
         int mapY = (height - MAP_HEIGHT) / 2;
         boolean isMouseOverMap = mouseX >= mapX && mouseX <= mapX + MAP_WIDTH &&
                 mouseY >= mapY && mouseY <= mapY + MAP_HEIGHT;
-        if (!state.is(NORMAL) && !state.is(HIDING_MARKERS) && !state.is(FILTERING_MARKERS)) {
+
+        if (hoveredMarker != null && !isVisibleMarker(hoveredMarker))
+            hoveredMarker = null;
+        if (hoveredOuterMarker != null && !isVisibleMarker(hoveredOuterMarker))
+            hoveredOuterMarker = null;
+
+        if (!state.is(NORMAL) && !state.is(HIDING_MARKERS)) {
             int atlasID = getAtlasID();
 
-            if (state.is(PLACING_MARKER) // If clicked on the map, place marker:
+            if (state.is(EDITING_FILTER))
+                state.switchTo(NORMAL);
+            else if (state.is(PLACING_MARKER) // If clicked on the map, place marker:
                     && isMouseOverMap && mouseState == 0 /* left click */) {
                 markerFinalizer.setMarkerData(player.getEntityWorld(),
                         atlasID, player.dimension,
@@ -617,6 +633,18 @@ public class GuiAtlas extends GuiComponent {
                 dragMapOffsetY = mapOffsetY;
             }
         }
+
+        if (hoveredOuterMarker != null) {
+            mapOffsetX = (int) (-hoveredOuterMarker.getX() * mapScale);
+            mapOffsetY = (int) (-hoveredOuterMarker.getZ() * mapScale);
+            followPlayer = false;
+            btnPosition.setEnabled(true);
+            hoveredOuterMarker = null;
+        }
+    }
+
+    private boolean isVisibleMarker(Marker hoveredMarker) {
+        return !state.is(HIDING_MARKERS) && isFilteredMarker(hoveredMarker);
     }
 
     private void publishMarker(Marker marker) {
@@ -628,10 +656,10 @@ public class GuiAtlas extends GuiComponent {
                 marker.getLabel() + PublishingMarkerHandler.separator +
                 marker.getX() + PublishingMarkerHandler.separator +
                 marker.getZ() + PublishingMarkerHandler.separator +
-                marker.getType(), false);
+                marker.getTypeRaw(), false);
     }
 
-    private static Marker copiedMarker;
+    protected static Marker copiedMarker;
 
     private void copyMarker(Marker marker) {
         copiedMarker = marker;
@@ -645,7 +673,7 @@ public class GuiAtlas extends GuiComponent {
 
     private void pasteMarker() {
         if (copiedMarker != null) {
-            AtlasAPI.markers.putMarker(player.getEntityWorld(), true, getAtlasID(), copiedMarker.getType(), copiedMarker.getLabel(), copiedMarker.getX(), copiedMarker.getZ());
+            AtlasAPI.markers.putMarker(player.getEntityWorld(), true, getAtlasID(), copiedMarker.getTypeRaw(), copiedMarker.getLabel(), copiedMarker.getX(), copiedMarker.getZ());
 
             copiedMarker = null;
         }
@@ -726,7 +754,7 @@ public class GuiAtlas extends GuiComponent {
                 setMapScale(mapScale * 2);
             } else if (key == Keyboard.KEY_SUBTRACT || key == Keyboard.KEY_MINUS) {
                 setMapScale(mapScale / 2);
-            } else if (key == mc.gameSettings.keyBindInventory.getKeyCode()) {
+            } else if (key == mc.gameSettings.keyBindInventory.getKeyCode() && !btnFilterMarkers.textFieldFocused) {
                 close();
             }
             // Close the GUI if a hotbar key is pressed
@@ -863,7 +891,7 @@ public class GuiAtlas extends GuiComponent {
     /**
      * Set the pixel-to-block ratio, maintaining the current center of the screen with additional offset.
      */
-    private void setMapScale(double scale, int addOffsetX, int addOffsetY) {
+    protected void setMapScale(double scale, int addOffsetX, int addOffsetY) {
         double oldScale = mapScale;
         mapScale = Math.min(Math.max(scale, SettingsConfig.userInterface.minScale), SettingsConfig.userInterface.maxScale);
 
@@ -973,7 +1001,8 @@ public class GuiAtlas extends GuiComponent {
                     List<Marker> markers = localMarkersData.getMarkersAtChunk(x, z);
                     if (markers == null) continue;
                     for (Marker marker : markers) {
-                        renderMarker(marker, iconScale);
+                        if (isFilteredMarker(marker))
+                            renderMarker(marker, iconScale, worldXToScreenX(marker.getX()), worldZToScreenY(marker.getZ()), false);
                     }
                 }
             }
@@ -984,6 +1013,24 @@ public class GuiAtlas extends GuiComponent {
         // Overlay the frame so that edges of the map are smooth:
         GlStateManager.color(1, 1, 1, 1);
         AtlasRenderHelper.drawFullTexture(Textures.BOOK_FRAME, getGuiX(), getGuiY(), WIDTH, HEIGHT);
+
+        if (localMarkersData != null) {
+            if (state.is(NORMAL) || state.is(EDITING_FILTER))
+                if (!btnFilterMarkers.getText().isEmpty()) {
+                    for (Marker marker : localMarkersData.getAllMarkers()) {
+                        if (isOuterMarker(markersStartX, markersStartZ, markersEndX, markersEndZ, marker)) {
+                            if (isFilteredMarker(marker)) {
+                                GlStateManager.color(1, 1, 1, 0.3f);
+                                renderMarker(marker, iconScale,
+                                        clamp(worldXToScreenX(marker.getX()), getGuiX() + CONTENT_X, getGuiX() + CONTENT_X + MAP_WIDTH),
+                                        clamp(worldZToScreenY(marker.getZ()), getGuiY() + CONTENT_Y, getGuiY() + CONTENT_Y + MAP_HEIGHT),
+                                        true);
+                            }
+                        }
+                    }
+                }
+        }
+
         renderScaleOverlay(deltaMillis);
         iconScale = getIconScale();
 
@@ -1036,7 +1083,17 @@ public class GuiAtlas extends GuiComponent {
         }
     }
 
-    private void renderScaleOverlay(long deltaMillis) {
+    private boolean isOuterMarker(int markersStartX, int markersStartZ, int markersEndX, int markersEndZ, Marker marker) {
+        int largeChunkX = marker.getChunkX() / MarkersData.CHUNK_STEP;
+        int largeChunkZ = marker.getChunkZ() / MarkersData.CHUNK_STEP;
+        return largeChunkX < markersStartX || largeChunkX > markersEndX || largeChunkZ < markersStartZ || largeChunkZ > markersEndZ;
+    }
+
+    private boolean isFilteredMarker(Marker marker) {
+        return marker.getLabel().toLowerCase().contains(btnFilterMarkers.getText());
+    }
+
+    protected void renderScaleOverlay(long deltaMillis) {
         if (scaleAlpha > 0) {
             GlStateManager.translate(getGuiX() + WIDTH - 13, getGuiY() + 12, 0);
 
@@ -1097,8 +1154,9 @@ public class GuiAtlas extends GuiComponent {
         }
     }
 
-    private void renderMarker(Marker marker, double scale) {
-        MarkerType type = MarkerRegistry.find(marker.getType());
+    private void renderMarker(Marker marker, double scale, int markerX, int markerY, boolean outer) {
+
+        MarkerType type = MarkerRegistry.find(marker.getTypeForRender());
         if (type == null) {
             return;
         }
@@ -1106,12 +1164,6 @@ public class GuiAtlas extends GuiComponent {
             return;
         }
 
-        if (state.is(FILTERING_MARKERS) && !marker.getLabel().toLowerCase().contains(btnFilterMarkers.getText())) {
-            return;
-        }
-
-        int markerX = worldXToScreenX(marker.getX());
-        int markerY = worldZToScreenY(marker.getZ());
         if (!marker.isVisibleAhead() &&
                 !biomeData.hasTileAt(marker.getChunkX(), marker.getChunkZ())) {
             return;
@@ -1122,13 +1174,20 @@ public class GuiAtlas extends GuiComponent {
         boolean mouseIsOverMarker = type.shouldHover((getMouseX() - (markerX + info.x)) / info.width, (getMouseY() - (markerY + info.y)) / info.height);
         type.resetMip();
 
+        final float outerAlpha = 0.3f;
+
         if (mouseIsOverMarker) {
             GlStateManager.color(0.5f, 0.5f, 0.5f, 1);
-            hoveredMarker = marker;
+            if (outer)
+                hoveredOuterMarker = marker;
+            else
+                hoveredMarker = marker;
             MinecraftForge.EVENT_BUS.post(new MarkerHoveredEvent(player, marker));
         } else {
-            GlStateManager.color(1, 1, 1, 1);
+            GlStateManager.color(1, 1, 1, outer ? outerAlpha : 1);
             if (hoveredMarker == marker) {
+                if (outer)
+                    hoveredOuterMarker = null;
                 hoveredMarker = null;
             }
         }
@@ -1138,7 +1197,7 @@ public class GuiAtlas extends GuiComponent {
         } else if (state.is(DELETING_MARKER) && marker.isGlobal()) {
             GlStateManager.color(1, 1, 1, 0.5f);
         } else {
-            GlStateManager.color(1, 1, 1, 1);
+            GlStateManager.color(1, 1, 1, outer && !mouseIsOverMarker ? outerAlpha : 1);
         }
 
         if (SettingsConfig.performance.debugRender) {
@@ -1185,22 +1244,22 @@ public class GuiAtlas extends GuiComponent {
     /**
      * Returns the Y coordinate that the cursor is pointing at.
      */
-    private int screenXToWorldX(int mouseX) {
+    protected int screenXToWorldX(int mouseX) {
         return (int) Math.round((double) (mouseX - this.width / 2 - mapOffsetX) / mapScale);
     }
 
     /**
      * Returns the Y block coordinate that the cursor is pointing at.
      */
-    private int screenYToWorldZ(int mouseY) {
+    protected int screenYToWorldZ(int mouseY) {
         return (int) Math.round((double) (mouseY - this.height / 2 - mapOffsetY) / mapScale);
     }
 
-    private int worldXToScreenX(int x) {
+    protected int worldXToScreenX(int x) {
         return (int) Math.round((double) x * mapScale + this.width / 2 + mapOffsetX);
     }
 
-    private int worldZToScreenY(int z) {
+    protected int worldZToScreenY(int z) {
         return (int) Math.round((double) z * mapScale + this.height / 2 + mapOffsetY);
     }
 
@@ -1223,14 +1282,14 @@ public class GuiAtlas extends GuiComponent {
     /**
      * Returns the scale of markers and player icon at given mapScale.
      */
-    private double getIconScale() {
+    protected double getIconScale() {
         return SettingsConfig.userInterface.doScaleMarkers ? (mapScale < 0.5 ? 0.5 : mapScale > 1 ? 2 : 1) : 1;
     }
 
     /**
      * Returns atlas id based on "itemNeeded" option
      */
-    private int getAtlasID() {
+    protected int getAtlasID() {
         return SettingsConfig.gameplay.itemNeeded ? stack.getItemDamage() : player.getUniqueID().hashCode();
     }
 

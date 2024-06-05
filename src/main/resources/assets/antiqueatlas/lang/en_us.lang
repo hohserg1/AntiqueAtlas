@@ -1,5 +1,6 @@
 item.antiqueAtlas.name=Antique Atlas
 item.emptyAntiqueAtlas.name=Empty Antique Atlas
+item.astrolabe.name=Astrolabe
 
 gui.antiqueatlas.scalebar=Scale in blocks
 gui.antiqueatlas.addMarker=Add marker

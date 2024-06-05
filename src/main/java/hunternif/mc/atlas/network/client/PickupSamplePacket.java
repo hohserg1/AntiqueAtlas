@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.List;
 
+import static hunternif.mc.atlas.AntiqueAtlasMod.ieMarkerEmpty;
 import static hunternif.mc.atlas.RegistrarAntiqueAtlas.ATLAS;
 
 public class PickupSamplePacket extends AbstractMessage.AbstractClientMessage<PickupSamplePacket> {
@@ -113,7 +114,7 @@ public class PickupSamplePacket extends AbstractMessage.AbstractClientMessage<Pi
             }
 
         if (needToAdd)
-            AtlasAPI.markers.putMarker(world, true, atlas, "ie:deep_sample", label, x, z);
+            AtlasAPI.markers.putMarker(world, true, atlas, ieMarkerEmpty, label, x, z);
     }
 
     @SideOnly(Side.CLIENT)

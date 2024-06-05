@@ -132,7 +132,7 @@ public class MarkersData extends WorldSavedData {
 			for (Marker marker : data.getAllMarkers()) {
 				NBTTagCompound markerTag = new NBTTagCompound();
 				markerTag.setInteger(TAG_MARKER_ID, marker.getId());
-				markerTag.setString(TAG_MARKER_TYPE, marker.getType());
+				markerTag.setString(TAG_MARKER_TYPE, marker.getTypeRaw());
 				markerTag.setString(TAG_MARKER_LABEL, marker.getLabel());
 				markerTag.setInteger(TAG_MARKER_X, marker.getX());
 				markerTag.setInteger(TAG_MARKER_Y, marker.getZ());

@@ -62,7 +62,7 @@ public class MarkersDataHandler {
 				// flip the id so that it doesn't conflict with the local markers:
 				Marker localCopy = new Marker(
 						-marker.getId(),
-						marker.getType(), marker.getLabel(),
+						marker.getTypeForRender(), marker.getLabel(),
 						marker.getDimension(),
 						marker.getX(), marker.getZ(),
 						marker.isVisibleAhead()

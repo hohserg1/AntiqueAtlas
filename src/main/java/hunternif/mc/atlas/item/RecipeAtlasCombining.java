@@ -102,7 +102,7 @@ public class RecipeAtlasCombining extends RecipeBase {
 			if (destMarkers != null && srcMarkers != null && destMarkers != srcMarkers) {
 				for (int dim : srcMarkers.getVisitedDimensions()) {
 					for (Marker marker : srcMarkers.getMarkersDataInDimension(dim).getAllMarkers()) {
-						destMarkers.createAndSaveMarker(marker.getType(), marker.getLabel(),
+						destMarkers.createAndSaveMarker(marker.getTypeRaw(), marker.getLabel(),
 								dim, marker.getX(), marker.getZ(), marker.isVisibleAhead());
 					}
 				}

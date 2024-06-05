@@ -1,6 +1,7 @@
 package hunternif.mc.atlas.util;
 
 import com.google.gson.*;
+import net.minecraft.util.math.BlockPos;
 
 import java.io.*;
 

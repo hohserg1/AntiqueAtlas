@@ -73,7 +73,7 @@ public class TFCPropickHandler {
                 List<Marker> markersAtChunk = markersDataInDimension.getMarkersAtChunk((target.getX() >> 4) / MarkersData.CHUNK_STEP + x, (target.getZ() >> 4) / MarkersData.CHUNK_STEP + z);
                 if (markersAtChunk != null)
                     for (Marker marker : markersAtChunk) {
-                        if (marker.getType().equals(icon) && distanceSq(marker, target) < 16 * 16)
+                        if (marker.getTypeRaw().equals(icon) && distanceSq(marker, target) < 16 * 16)
                             return true;
                     }
             }

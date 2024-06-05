@@ -1,0 +1,61 @@
+{
+	"credit": "Made with Blockbench",
+	"parent": "item/generated",
+	"textures": {
+		"layer0": "antiqueatlas:items/antique_astrolabe"
+	},
+	"display": {
+		"thirdperson_righthand": {
+			"rotation": [22.5, 90, 0],
+			"translation": [0, 4.25, 3],
+			"scale": [0.55, 0.55, 1]
+		},
+		"thirdperson_lefthand": {
+			"rotation": [22.5, -90, 0],
+			"translation": [0, 4.25, 3],
+			"scale": [0.55, 0.55, 1]
+		},
+		"firstperson_righthand": {
+			"rotation": [0, 90, -25]
+		},
+		"firstperson_lefthand": {
+			"rotation": [0, -90, 25]
+		},
+		"ground": {
+			"rotation": [90, 0, 0],
+			"scale": [0.55, 0.55, 1]
+		},
+		"head": {
+			"rotation": [0, 90, -45],
+			"translation": [6.75, 0, -10.75],
+			"scale": [0.55, 0.55, 1]
+		}
+	},
+	"overrides": [
+		{ "predicate": { "angle": 0.000000 }, "model": "antiqueatlas:item/astrolabe/0" },
+		{ "predicate": { "angle": 0.041666 }, "model": "antiqueatlas:item/astrolabe/1" },
+		{ "predicate": { "angle": 0.083333 }, "model": "antiqueatlas:item/astrolabe/2" },
+		{ "predicate": { "angle": 0.125 }, "model": "antiqueatlas:item/astrolabe/3" },
+		{ "predicate": { "angle": 0.166666 }, "model": "antiqueatlas:item/astrolabe/4" },
+		{ "predicate": { "angle": 0.208333 }, "model": "antiqueatlas:item/astrolabe/5" },
+		{ "predicate": { "angle": 0.25 }, "model": "antiqueatlas:item/astrolabe/6" },
+		{ "predicate": { "angle": 0.291666 }, "model": "antiqueatlas:item/astrolabe/7" },
+		{ "predicate": { "angle": 0.333333 }, "model": "antiqueatlas:item/astrolabe/8" },
+		{ "predicate": { "angle": 0.375 }, "model": "antiqueatlas:item/astrolabe/9" },
+		{ "predicate": { "angle": 0.416666 }, "model": "antiqueatlas:item/astrolabe/10" },
+		{ "predicate": { "angle": 0.458333 }, "model": "antiqueatlas:item/astrolabe/11" },
+		{ "predicate": { "angle": 0.5 }, "model": "antiqueatlas:item/astrolabe/12" },
+		{ "predicate": { "angle": 0.541666 }, "model": "antiqueatlas:item/astrolabe/13" },
+		{ "predicate": { "angle": 0.583333 }, "model": "antiqueatlas:item/astrolabe/14" },
+		{ "predicate": { "angle": 0.625 }, "model": "antiqueatlas:item/astrolabe/15" },
+		{ "predicate": { "angle": 0.666666 }, "model": "antiqueatlas:item/astrolabe/16" },
+		{ "predicate": { "angle": 0.708333 }, "model": "antiqueatlas:item/astrolabe/17" },
+		{ "predicate": { "angle": 0.75 }, "model": "antiqueatlas:item/astrolabe/18" },
+		{ "predicate": { "angle": 0.791666 }, "model": "antiqueatlas:item/astrolabe/19" },
+		{ "predicate": { "angle": 0.833333 }, "model": "antiqueatlas:item/astrolabe/20" },
+		{ "predicate": { "angle": 0.875 }, "model": "antiqueatlas:item/astrolabe/21" },
+		{ "predicate": { "angle": 0.916666 }, "model": "antiqueatlas:item/astrolabe/22" },
+		{ "predicate": { "angle": 0.958333 }, "model": "antiqueatlas:item/astrolabe/23" },
+		{ "predicate": { "angle": 1 }, "model": "antiqueatlas:item/astrolabe/0" }
+	]
+}

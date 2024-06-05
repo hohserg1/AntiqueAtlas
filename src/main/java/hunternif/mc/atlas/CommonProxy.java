@@ -92,6 +92,7 @@ public class CommonProxy {
 	}
 
 	public void openAtlasGUI(ItemStack stack) {}
+	public void openAstrolabeGUI() {}
 
 	public void openAtlasGUI() {}
 

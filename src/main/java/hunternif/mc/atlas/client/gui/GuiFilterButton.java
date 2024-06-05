@@ -86,7 +86,12 @@ public class GuiFilterButton extends GuiBookmarkButton {
     }
 
     private boolean expanded = false;
-    private boolean textFieldFocused = false;
+    public boolean textFieldFocused = false;
+
+    @Override
+    protected int getWidth() {
+        return super.getWidth() + (expanded ? WIDTH * 3 : 0);
+    }
 
     public String getText() {
         return text;
@@ -100,14 +105,22 @@ public class GuiFilterButton extends GuiBookmarkButton {
     }
 
     public void show() {
-        textFieldFocused = true;
+        focus();
         expanded = true;
 
     }
 
     public void hide() {
         clear();
-        textFieldFocused = false;
+        unfocus();
         expanded = false;
+    }
+
+    public void focus() {
+        textFieldFocused = true;
+    }
+
+    public void unfocus() {
+        textFieldFocused = false;
     }
 }

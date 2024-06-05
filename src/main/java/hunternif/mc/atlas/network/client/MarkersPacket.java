@@ -39,7 +39,7 @@ public class MarkersPacket extends AbstractClientMessage<MarkersPacket> {
 		this.atlasID = atlasID;
 		this.dimension = dimension;
 		for (Marker marker : markers) {
-			markersByType.put(marker.getType(), marker);
+			markersByType.put(marker.getTypeRaw(), marker);
 		}
 	}
 
@@ -49,7 +49,7 @@ public class MarkersPacket extends AbstractClientMessage<MarkersPacket> {
 	}
 
 	public MarkersPacket putMarker(Marker marker) {
-		markersByType.put(marker.getType(), marker);
+		markersByType.put(marker.getTypeRaw(), marker);
 		return this;
 	}
 
@@ -100,7 +100,7 @@ public class MarkersPacket extends AbstractClientMessage<MarkersPacket> {
 		if (isGlobal()) {
 			MarkersData globalMarkersData = AntiqueAtlasMod.globalMarkersData.getData();
 			for (Marker marker : markersByType.values()) {
-				MarkerType type = MarkerRegistry.find(marker.getType());
+				MarkerType type = MarkerRegistry.find(marker.getTypeRaw());
 				if (type == null) continue;
 				if (!MinecraftForge.EVENT_BUS.post(new OptionalMarkerEvent(
 						GLOBAL, dimension, type, marker.getLabel(),
@@ -113,7 +113,7 @@ public class MarkersPacket extends AbstractClientMessage<MarkersPacket> {
 						// flip the id so that it doesn't conflict with the local markers:
 						Marker localCopy = new Marker(
 								-marker.getId(),
-								marker.getType(), marker.getLabel(),
+								marker.getTypeRaw(), marker.getLabel(),
 								marker.getDimension(),
 								marker.getX(), marker.getZ(),
 								marker.isVisibleAhead()

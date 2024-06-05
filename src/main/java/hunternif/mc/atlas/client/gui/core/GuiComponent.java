@@ -419,7 +419,7 @@ public class GuiComponent extends GuiScreen {
 
 	/** Returns true, if the mouse cursor is within the specified bounds.
 	 * Note: left and top are absolute. */
-    boolean isMouseInRegion(int left, int top, int width, int height) {
+    protected boolean isMouseInRegion(int left, int top, int width, int height) {
 		int mouseX = getMouseX();
 		int mouseY = getMouseY();
 		return mouseX >= left && mouseX < left + width && mouseY >= top && mouseY < top + height;

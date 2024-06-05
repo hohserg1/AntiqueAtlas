@@ -85,10 +85,19 @@ public class AntiqueAtlasMod {
         initIEMarkerIcon();
     }
 
-    private void initIEMarkerIcon() {
-        ResourceLocation textureLoc = new ResourceLocation("antiqueatlas", "textures/gui/markers/ie_sample.png");
+    public static final String ieMarkerEmpty = "ie:deep_sample";
+    public static final String ieMarkerFilled = "ie:deep_sample_filled";
 
-        MarkerType type = new MarkerType(new ResourceLocation("ie:deep_sample"), textureLoc) {
+    private void initIEMarkerIcon() {
+        ResourceLocation textureLocEmpty = new ResourceLocation("antiqueatlas", "textures/gui/markers/ie_sample.png");
+        ResourceLocation textureLocFilled = new ResourceLocation("antiqueatlas", "textures/gui/markers/ie_sample_filled.png");
+
+        registerMarkerIcon(ieMarkerEmpty, textureLocEmpty);
+        registerMarkerIcon(ieMarkerFilled, textureLocFilled);
+    }
+
+    private void registerMarkerIcon(String name, ResourceLocation textureLocEmpty) {
+        MarkerType type = new MarkerType(new ResourceLocation(name), textureLocEmpty) {
             @Override
             public boolean isVisibleInList() {
                 return false;

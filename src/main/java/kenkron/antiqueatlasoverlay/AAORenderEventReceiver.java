@@ -321,7 +321,7 @@ public class AAORenderEventReceiver {
             return;
         }
         GlStateManager.color(1, 1, 1, 1);
-        MarkerType m = MarkerRegistry.find(marker.getType());
+        MarkerType m = MarkerRegistry.find(marker.getTypeForRender());
         if (m == null) {
             return;
         }

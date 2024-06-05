@@ -347,9 +347,9 @@ public class ExportImageUtil {
 				}
 				
 				for (Marker marker : markers) {
-					MarkerType type = MarkerRegistry.find(marker.getType());
+					MarkerType type = MarkerRegistry.find(marker.getTypeForRender());
 					if (type == null){
-						Log.warn("Could not find marker data for type: %s\n", marker.getType());
+						Log.warn("Could not find marker data for type: %s\n", marker.getTypeForRender());
 						continue;
 					}
 					

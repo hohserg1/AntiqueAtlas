@@ -22,7 +22,8 @@ import net.minecraft.world.World;
 public class ItemAtlas extends Item {
 	static final String WORLD_ATLAS_DATA_ID = "aAtlas";
 
-	public ItemAtlas() {
+	{
+		setRegistryName("antique_atlas");
 	    setTranslationKey("antiqueAtlas");
 		setHasSubtypes(true);
 	}
