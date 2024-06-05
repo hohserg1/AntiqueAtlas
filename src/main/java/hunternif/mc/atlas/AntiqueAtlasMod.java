@@ -18,6 +18,7 @@ import hunternif.mc.atlas.registry.TFCMarkerTypes;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.DimensionType;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.Mod.Instance;
@@ -80,7 +81,8 @@ public class AntiqueAtlasMod {
     @EventHandler
     public void postInit(FMLPostInitializationEvent event) {
         proxy.postInit(event);
-        TFCMarkerTypes.init();
+        if(Loader.isModLoaded("tfc"))
+            TFCMarkerTypes.init();
 
         initIEMarkerIcon();
     }

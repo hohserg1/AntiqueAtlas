@@ -16,6 +16,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.Optional;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 
@@ -27,6 +28,7 @@ import static hunternif.mc.atlas.registry.TFCMarkerTypes.gradePrefix;
 @Mod.EventBusSubscriber(modid = "tfc", value = Side.CLIENT)
 public class TFCPropickHandler {
 
+    @Optional.Method(modid = "tfc")
     @SubscribeEvent
     public static void onUsePropick(ProspectEvent.Client event) {
         ProspectResult.Type type = event.getResultType();
