@@ -1,7 +1,5 @@
 package hunternif.mc.atlas;
 
-import hunternif.mc.atlas.client.ingame.book.AtlasBakedModel;
-import hunternif.mc.atlas.client.ingame.book.BookRenderer;
 import hunternif.mc.atlas.item.*;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.init.Items;
@@ -56,18 +54,7 @@ public class RegistrarAntiqueAtlas {
             ModelLoader.setCustomModelResourceLocation(EMPTY_ATLAS, 0, new ModelResourceLocation(EMPTY_ATLAS.getRegistryName(), "inventory"));
             ModelLoader.setCustomModelResourceLocation(ASTROLABE, 0, new ModelResourceLocation(ASTROLABE.getRegistryName(), "inventory"));
             ModelLoader.setCustomMeshDefinition(ATLAS, stack -> new ModelResourceLocation(ATLAS.getRegistryName(), "inventory"));
-            if (SettingsConfig.userInterface.enableBookRender)
-                ATLAS.setTileEntityItemStackRenderer(new BookRenderer());
         }
-    }
-
-    @SideOnly(Side.CLIENT)
-    @SubscribeEvent
-    public static void registerModels2(ModelBakeEvent event) {
-        if (SettingsConfig.userInterface.enableBookRender)
-            event.getModelRegistry().putObject(
-                    new ModelResourceLocation(ATLAS.getRegistryName(), "inventory"),
-                    new AtlasBakedModel(event.getModelRegistry().getObject(new ModelResourceLocation(ATLAS.getRegistryName(), "inventory"))));
     }
 
     // Probably not needed since Forge for 1.12 does not support transfers from earlier than 1.11.2, but just in case

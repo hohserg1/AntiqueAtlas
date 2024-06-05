@@ -8,7 +8,7 @@ import hunternif.mc.atlas.marker.MarkersData;
 import hunternif.mc.atlas.registry.TFCMarkerTypes;
 import net.dries007.tfc.api.events.ProspectEvent;
 import net.dries007.tfc.objects.blocks.stone.BlockOreTFC;
-import net.dries007.tfc.objects.items.metal.ItemProspectorPick.ProspectResult;
+import net.dries007.tfc.objects.items.tool.ItemProspectorPick.ProspectResult;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
