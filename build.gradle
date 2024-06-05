@@ -81,7 +81,7 @@ dependencies {
     }
 
     implementation fg.deobf("abc:crafttweaker2:4.1.20.660")
-    implementation fg.deobf("abc:TerraFirmaCraft:1.7.23.181")
+    implementation fg.deobf("abc:TFC:1.12.2-3")
     implementation fg.deobf("abc:ImmersiveEngineering:0.12.107")
     implementation fg.deobf("abc:immersivepetroleum-1.12.2:1.1.10")
     //implementation fg.deobf("abc:OptiFine:1.12.2_HD_U_G5")
