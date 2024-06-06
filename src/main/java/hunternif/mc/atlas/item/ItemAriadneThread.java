@@ -38,6 +38,10 @@ public class ItemAriadneThread extends Item {
 
         if (playerIn.isSneaking()) {
             markActive(heldItem, false);
+
+            if (!playerIn.capabilities.isCreativeMode)
+                playerIn.getCooldownTracker().setCooldown(this, 20 * 60);
+            
             if (world.isRemote)
                 RecordingHandler.stop();
 
@@ -54,10 +58,6 @@ public class ItemAriadneThread extends Item {
             if (world.isRemote)
                 RecordingHandler.start(heldItem);
         }
-
-
-        if (!playerIn.capabilities.isCreativeMode)
-            playerIn.getCooldownTracker().setCooldown(this, 20 * 60);
 
         return new ActionResult<>(EnumActionResult.SUCCESS, heldItem);
     }
