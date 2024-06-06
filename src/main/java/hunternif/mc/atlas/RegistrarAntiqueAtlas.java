@@ -1,13 +1,14 @@
 package hunternif.mc.atlas;
 
 import hunternif.mc.atlas.item.*;
+import hunternif.mc.atlas.recipe.RecipeAtlasCloning;
+import hunternif.mc.atlas.recipe.RecipeAtlasCombining;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.client.event.ModelBakeEvent;
 import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.event.RegistryEvent;
@@ -28,6 +29,8 @@ public class RegistrarAntiqueAtlas {
     public static ItemAtlas ATLAS;
     @GameRegistry.ObjectHolder("antique_astrolabe")
     public static ItemAstrolabe ASTROLABE;
+    @GameRegistry.ObjectHolder("ariadne_thread")
+    public static ItemAriadneThread ARIADNE_THREAD;
 
     @SubscribeEvent
     public static void registerItems(RegistryEvent.Register<Item> event) {
@@ -35,12 +38,14 @@ public class RegistrarAntiqueAtlas {
             event.getRegistry().register(new ItemEmptyAtlas());
             event.getRegistry().register(new ItemAtlas());
             event.getRegistry().register(new ItemAstrolabe());
+            event.getRegistry().register(new ItemAriadneThread());
         }
     }
 
     @SubscribeEvent
     public static void registerRecipes(RegistryEvent.Register<IRecipe> event) {
         if (SettingsConfig.gameplay.itemNeeded) {
+            event.getRegistry().register(new ShapelessOreRecipe(new ResourceLocation(AntiqueAtlasMod.ID, "atlas"), new ItemStack(ARIADNE_THREAD), ARIADNE_THREAD).setRegistryName("ariadne_thread_clearing"));
             event.getRegistry().register(new ShapelessOreRecipe(new ResourceLocation(AntiqueAtlasMod.ID, "atlas"), new ItemStack(EMPTY_ATLAS), Items.BOOK, Items.COMPASS).setRegistryName("atlas_blank"));
             event.getRegistry().register(new RecipeAtlasCloning().setRegistryName("atlas_clone"));
             event.getRegistry().register(new RecipeAtlasCombining().setRegistryName("atlas_combine"));
@@ -53,6 +58,7 @@ public class RegistrarAntiqueAtlas {
         if (SettingsConfig.gameplay.itemNeeded) {
             ModelLoader.setCustomModelResourceLocation(EMPTY_ATLAS, 0, new ModelResourceLocation(EMPTY_ATLAS.getRegistryName(), "inventory"));
             ModelLoader.setCustomModelResourceLocation(ASTROLABE, 0, new ModelResourceLocation(ASTROLABE.getRegistryName(), "inventory"));
+            ModelLoader.setCustomModelResourceLocation(ARIADNE_THREAD, 0, new ModelResourceLocation(ARIADNE_THREAD.getRegistryName(), "inventory"));
             ModelLoader.setCustomMeshDefinition(ATLAS, stack -> new ModelResourceLocation(ATLAS.getRegistryName(), "inventory"));
         }
     }

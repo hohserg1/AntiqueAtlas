@@ -20,7 +20,7 @@ import net.minecraft.util.EnumHand;
 import net.minecraft.world.World;
 
 public class ItemAtlas extends Item {
-	static final String WORLD_ATLAS_DATA_ID = "aAtlas";
+	public static final String WORLD_ATLAS_DATA_ID = "aAtlas";
 
 	{
 		setRegistryName("antique_atlas");

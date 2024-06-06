@@ -61,8 +61,7 @@ public class ItemAstrolabe extends Item {
     }
 
     @Override
-    public ActionResult<ItemStack> onItemRightClick(World world, EntityPlayer playerIn,
-                                                    EnumHand hand) {
+    public ActionResult<ItemStack> onItemRightClick(World world, EntityPlayer playerIn, EnumHand hand) {
         ItemStack stack = playerIn.getHeldItem(hand);
 
         if (world.isRemote) {

@@ -1,6 +1,10 @@
 item.antiqueAtlas.name=Antique Atlas
 item.emptyAntiqueAtlas.name=Empty Antique Atlas
 item.astrolabe.name=Astrolabe
+item.ariadne_thread.name=Ariadne Thread Ball
+
+item.ariadne_thread.tooltip1=Right click to start recording path
+item.ariadne_thread.tooltip2=Sneak+right click to stop recording path
 
 gui.antiqueatlas.scalebar=Scale in blocks
 gui.antiqueatlas.addMarker=Add marker

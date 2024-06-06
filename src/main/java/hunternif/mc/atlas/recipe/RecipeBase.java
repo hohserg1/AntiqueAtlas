@@ -1,4 +1,4 @@
-package hunternif.mc.atlas.item;
+package hunternif.mc.atlas.recipe;
 
 import hunternif.mc.atlas.AntiqueAtlasMod;
 import net.minecraft.inventory.InventoryCrafting;

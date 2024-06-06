@@ -6,6 +6,7 @@ import hunternif.mc.atlas.network.bidirectional.PutBiomeTilePacket;
 import hunternif.mc.atlas.network.client.*;
 import hunternif.mc.atlas.network.server.AddMarkerPacket;
 import hunternif.mc.atlas.network.server.BrowsingPositionPacket;
+import hunternif.mc.atlas.network.server.FlushAriadneThreadPoses;
 import hunternif.mc.atlas.network.server.RegisterTileIdPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -51,6 +52,7 @@ public class PacketDispatcher
 		registerMessage(IntTilesPacket.class);
 		registerMessage(IntDimensionUpdatePacket.class);
 		registerMessage(OptionalMarkerPacket.class);
+		registerMessage(FlushAriadneThreadPoses.class);
 
 		if(Loader.isModLoaded("immersiveengineering"))
 			registerMessage(PickupSamplePacket.class);

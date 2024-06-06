@@ -1,6 +1,10 @@
 item.antiqueAtlas.name=Старинный атлас
 item.emptyAntiqueAtlas.name=Пустой старинный атлас
 item.astrolabe.name=Астролябия
+item.ariadne_thread.name=Клубок ниток Ариадны
+
+item.ariadne_thread.tooltip1=ПКМ чтобы начать запись пути
+item.ariadne_thread.tooltip2=Шифт+ПКМ чтобы остановить
 
 gui.antiqueatlas.scalebar=Масштаб в блоках
 gui.antiqueatlas.addMarker=Добавить метку
