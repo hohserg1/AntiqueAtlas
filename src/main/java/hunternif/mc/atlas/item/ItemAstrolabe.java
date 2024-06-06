@@ -1,9 +1,7 @@
 package hunternif.mc.atlas.item;
 
 import hunternif.mc.atlas.AntiqueAtlasMod;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.item.EntityItemFrame;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.IItemPropertyGetter;
 import net.minecraft.item.Item;
@@ -12,7 +10,6 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
@@ -24,6 +21,8 @@ public class ItemAstrolabe extends Item {
     {
         setRegistryName("antique_astrolabe");
         setTranslationKey("astrolabe");
+
+        setMaxStackSize(1);
 
         addPropertyOverride(new ResourceLocation("angle"), new IItemPropertyGetter() {
             @SideOnly(Side.CLIENT)
