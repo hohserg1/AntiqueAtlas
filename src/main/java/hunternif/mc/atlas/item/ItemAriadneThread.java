@@ -37,14 +37,22 @@ public class ItemAriadneThread extends Item {
         ItemStack heldItem = playerIn.getHeldItem(hand);
 
         if (playerIn.isSneaking()) {
+            markActive(heldItem, false);
             if (world.isRemote)
                 RecordingHandler.stop();
-            markActive(heldItem, false);
 
         } else {
+            if (heldItem.getCount() == 1) {
+                markActive(heldItem, true);
+            } else {
+                ItemStack r = heldItem.copy();
+                markActive(r, true);
+                if (playerIn.addItemStackToInventory(r)) {
+                    heldItem.shrink(1);
+                }
+            }
             if (world.isRemote)
                 RecordingHandler.start(heldItem);
-            markActive(heldItem, true);
         }
 
 
