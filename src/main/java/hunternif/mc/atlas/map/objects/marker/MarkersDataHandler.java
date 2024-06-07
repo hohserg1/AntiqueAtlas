@@ -1,4 +1,4 @@
-package hunternif.mc.atlas.marker;
+package hunternif.mc.atlas.map.objects.marker;
 
 import java.util.Collection;
 import java.util.Map;

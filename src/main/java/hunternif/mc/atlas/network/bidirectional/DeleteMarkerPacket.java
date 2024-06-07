@@ -4,7 +4,7 @@ import hunternif.mc.atlas.AntiqueAtlasMod;
 import hunternif.mc.atlas.RegistrarAntiqueAtlas;
 import hunternif.mc.atlas.SettingsConfig;
 import hunternif.mc.atlas.api.AtlasAPI;
-import hunternif.mc.atlas.marker.MarkersData;
+import hunternif.mc.atlas.map.objects.marker.MarkersData;
 import hunternif.mc.atlas.network.AbstractMessage;
 import hunternif.mc.atlas.util.Log;
 import net.minecraft.entity.player.EntityPlayer;

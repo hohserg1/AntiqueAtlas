@@ -1,18 +1,15 @@
-package hunternif.mc.atlas.marker;
+package hunternif.mc.atlas.map.objects.marker;
 
 import hunternif.mc.atlas.AntiqueAtlasMod;
 import hunternif.mc.atlas.RegistrarAntiqueAtlas;
 import hunternif.mc.atlas.SettingsConfig;
-import hunternif.mc.atlas.api.AtlasAPI;
 import hunternif.mc.atlas.event.OptionalMarkerEvent;
 import hunternif.mc.atlas.network.PacketDispatcher;
 import hunternif.mc.atlas.network.client.OptionalMarkerPacket;
-import hunternif.mc.atlas.network.server.AddMarkerPacket;
 import hunternif.mc.atlas.registry.MarkerTypes;
 import hunternif.mc.atlas.util.DummyWorldAccess;
 import hunternif.mc.atlas.util.Log;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.DimensionType;
@@ -20,7 +17,6 @@ import net.minecraft.world.World;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.registry.ForgeRegistries;
 
 import java.util.List;
 import java.util.Map;

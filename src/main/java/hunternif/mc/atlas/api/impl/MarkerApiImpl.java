@@ -4,8 +4,8 @@ import net.minecraft.world.World;
 
 import hunternif.mc.atlas.AntiqueAtlasMod;
 import hunternif.mc.atlas.api.MarkerAPI;
-import hunternif.mc.atlas.marker.Marker;
-import hunternif.mc.atlas.marker.MarkersData;
+import hunternif.mc.atlas.map.objects.marker.Marker;
+import hunternif.mc.atlas.map.objects.marker.MarkersData;
 import hunternif.mc.atlas.network.PacketDispatcher;
 import hunternif.mc.atlas.network.bidirectional.DeleteMarkerPacket;
 import hunternif.mc.atlas.network.client.MarkersPacket;

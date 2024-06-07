@@ -2,9 +2,9 @@ package hunternif.mc.atlas.core;
 
 import hunternif.mc.atlas.AntiqueAtlasMod;
 import hunternif.mc.atlas.api.AtlasAPI;
-import hunternif.mc.atlas.marker.DimensionMarkersData;
-import hunternif.mc.atlas.marker.Marker;
-import hunternif.mc.atlas.marker.MarkersData;
+import hunternif.mc.atlas.map.objects.marker.DimensionMarkersData;
+import hunternif.mc.atlas.map.objects.marker.Marker;
+import hunternif.mc.atlas.map.objects.marker.MarkersData;
 import hunternif.mc.atlas.registry.TFCMarkerTypes;
 import net.dries007.tfc.api.events.ProspectEvent;
 import net.dries007.tfc.objects.blocks.stone.BlockOreTFC;

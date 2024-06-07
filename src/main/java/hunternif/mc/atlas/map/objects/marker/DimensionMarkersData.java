@@ -1,4 +1,4 @@
-package hunternif.mc.atlas.marker;
+package hunternif.mc.atlas.map.objects.marker;
 
 import hunternif.mc.atlas.util.IntVec2;
 import hunternif.mc.atlas.util.ListMapValueIterator;

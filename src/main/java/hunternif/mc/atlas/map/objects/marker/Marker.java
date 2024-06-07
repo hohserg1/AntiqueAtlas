@@ -1,4 +1,4 @@
-package hunternif.mc.atlas.marker;
+package hunternif.mc.atlas.map.objects.marker;
 
 import hunternif.mc.atlas.registry.MarkerType;
 import hunternif.mc.atlas.util.IntVec2;

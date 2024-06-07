@@ -1,6 +1,6 @@
 package hunternif.mc.atlas.event;
 
-import hunternif.mc.atlas.marker.Marker;
+import hunternif.mc.atlas.map.objects.marker.Marker;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.fml.common.eventhandler.Cancelable;
 import net.minecraftforge.fml.common.eventhandler.Event;

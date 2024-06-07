@@ -1,6 +1,6 @@
 package hunternif.mc.atlas.api;
 
-import hunternif.mc.atlas.marker.Marker;
+import hunternif.mc.atlas.map.objects.marker.Marker;
 import net.minecraft.world.World;
 
 import hunternif.mc.atlas.registry.MarkerType;
