@@ -72,21 +72,20 @@ public class RenderHandler {
     }
 
     private static void renderLine(List<BlockPos> poses, float partialTicks) {
-        BufferBuilder buffer = Tessellator.getInstance().getBuffer();
-        buffer.begin(GL11.GL_LINE_STRIP, DefaultVertexFormats.POSITION_COLOR);
-
-        for (BlockPos p : poses) {
-            buffer.pos(p.getX() + 0.5, p.getY() + 0.5, p.getZ() + 0.5).color(49/255f, 165/255f, 0, 0.8f).endVertex();
-        }
-
         EntityPlayerSP self = Minecraft.getMinecraft().player;
         double x = self.lastTickPosX + (self.posX - self.lastTickPosX) * partialTicks;
         double y = self.lastTickPosY + (self.posY - self.lastTickPosY) * partialTicks;
         double z = self.lastTickPosZ + (self.posZ - self.lastTickPosZ) * partialTicks;
         setupGL();
-        GlStateManager.translate(-x, -y, -z);
 
-        buffer.pos(self.posX, self.posY + 1, self.posZ).color(0, 0.7f, 0, 0.8f).endVertex();
+        BufferBuilder buffer = Tessellator.getInstance().getBuffer();
+        buffer.begin(GL11.GL_LINE_STRIP, DefaultVertexFormats.POSITION_COLOR);
+
+        for (BlockPos p : poses) {
+            buffer.pos(p.getX() + 0.5 - x, p.getY() + 0.5 - y, p.getZ() + 0.5 - z).color(49 / 255f, 165 / 255f, 0, 0.8f).endVertex();
+        }
+
+        buffer.pos(0, 0, 0).color(0, 0.7f, 0, 0.8f).endVertex();
 
         Tessellator.getInstance().draw();
 
