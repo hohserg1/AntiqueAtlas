@@ -44,7 +44,7 @@ public class MarkersData extends WorldSavedData {
 	public static final int CHUNK_STEP = 8;
 	
 	/** Set of players this data has been sent to, only once after they connect. */
-	private final Set<EntityPlayer> playersSentTo = new HashSet<>();
+	private final Set<EntityPlayer> playersSentTo = Collections.newSetFromMap(new WeakHashMap<>());
 	
 	private final AtomicInteger largestID = new AtomicInteger(0);
 	
