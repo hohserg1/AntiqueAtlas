@@ -87,6 +87,7 @@ public class RecipeAriadneThreadColoring extends RecipeBase {
 
         int resultColor = resultRed << 16 | resultGreen << 8 | resultBlue;
 
+        ball.setCount(1);
         ARIADNE_THREAD.setColor(ball, resultColor);
 
         return ball;
