@@ -239,11 +239,6 @@ public class AAORenderEventReceiver {
     }
 
     private static void drawPaths(Rect shape, int atlasID, Vec3d playerPos, int dimension) {
-        GL11.glEnable(GL11.GL_SCISSOR_TEST);
-        glScissorGUI(shape);
-        GlStateManager.disableTexture2D();
-        glEnable(GL_LINE_SMOOTH);
-        GlStateManager.glLineWidth((float) 1);
 
         DimensionPathsData dimensionPathsData = AntiqueAtlasMod.pathsData.getOrCreate(atlasID, Minecraft.getMinecraft().world).get(dimension);
 
@@ -263,6 +258,15 @@ public class AAORenderEventReceiver {
             }
         }
 
+        GL11.glEnable(GL11.GL_SCISSOR_TEST);
+        glScissorGUI(shape);
+        GlStateManager.disableTexture2D();
+        glEnable(GL_LINE_SMOOTH);
+        GlStateManager.glLineWidth((float) 1);
+
+        BufferBuilder buffer = Tessellator.getInstance().getBuffer();
+        buffer.begin(GL11.GL_LINE_STRIP, DefaultVertexFormats.POSITION_COLOR);
+
         for (Path path : paths) {
 
             float red = ((path.color >> 16) & 0xFF) / 255f;
@@ -272,10 +276,7 @@ public class AAORenderEventReceiver {
             int x = path.startX;
             int z = path.startZ;
 
-            BufferBuilder buffer = Tessellator.getInstance().getBuffer();
-            buffer.begin(GL11.GL_LINE_STRIP, DefaultVertexFormats.POSITION_COLOR);
-
-            buffer.pos(worldXToScreenX(playerPos, shapeMiddleX, x) + AAOConfig.appearance.markerSize / 2d, worldZToScreenY(playerPos, shapeMiddleY, z) + AAOConfig.appearance.markerSize / 2d, 0).color(red, green, blue, 0.8f).endVertex();
+            buffer.pos(worldXToScreenX(playerPos, shapeMiddleX, x) + AAOConfig.appearance.markerSize / 2d, worldZToScreenY(playerPos, shapeMiddleY, z) + AAOConfig.appearance.markerSize / 2d, 0).color(0, 0, 0, 0).endVertex();
 
             for (short segment : path.segments) {
                 Vec3i vector = Segment.getVector(segment);
@@ -285,9 +286,9 @@ public class AAORenderEventReceiver {
                 z += vector.getZ();
                 buffer.pos(worldXToScreenX(playerPos, shapeMiddleX, x) + AAOConfig.appearance.markerSize / 2d, worldZToScreenY(playerPos, shapeMiddleY, z) + AAOConfig.appearance.markerSize / 2d, 0).color(red, green, blue, 0.8f).endVertex();
             }
-
-            Tessellator.getInstance().draw();
         }
+
+        Tessellator.getInstance().draw();
 
         glDisable(GL_LINE_SMOOTH);
         GlStateManager.enableTexture2D();

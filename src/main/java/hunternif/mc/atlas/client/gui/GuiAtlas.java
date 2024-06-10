@@ -1030,9 +1030,14 @@ public class GuiAtlas extends GuiComponent {
             glEnable(GL_LINE_SMOOTH);
             GlStateManager.glLineWidth((float) iconScale);
 
+            BufferBuilder buffer = Tessellator.getInstance().getBuffer();
+            buffer.begin(GL11.GL_LINE_STRIP, DefaultVertexFormats.POSITION_COLOR);
+
             for (Path path : paths) {
-                renderPath(path, getPathScale(), markersStartX, markersEndX, markersStartZ, markersEndZ);
+                renderPath(buffer, path, getPathScale(), markersStartX, markersEndX, markersStartZ, markersEndZ);
             }
+
+            Tessellator.getInstance().draw();
 
             glDisable(GL_LINE_SMOOTH);
             GlStateManager.enableTexture2D();
@@ -1113,7 +1118,7 @@ public class GuiAtlas extends GuiComponent {
         }
     }
 
-    private void renderPath(Path path, double iconScale, int markersStartX, int markersEndX, int markersStartZ, int markersEndZ) {
+    private void renderPath(BufferBuilder buffer, Path path, double iconScale, int markersStartX, int markersEndX, int markersStartZ, int markersEndZ) {
 
         float red = ((path.color >> 16) & 0xFF) / 255f;
         float green = ((path.color >> 8) & 0xFF) / 255f;
@@ -1122,10 +1127,7 @@ public class GuiAtlas extends GuiComponent {
         int x = path.startX;
         int z = path.startZ;
 
-        BufferBuilder buffer = Tessellator.getInstance().getBuffer();
-        buffer.begin(GL11.GL_LINE_STRIP, DefaultVertexFormats.POSITION_COLOR);
-
-        buffer.pos(worldXToScreenX(x), worldZToScreenY(z), 0).color(red, green, blue, 0.8f).endVertex();
+        buffer.pos(worldXToScreenX(x), worldZToScreenY(z), 0).color(0, 0, 0, 0).endVertex();
 
         for (short segment : path.segments) {
             Vec3i vector = Segment.getVector(segment);
@@ -1135,8 +1137,6 @@ public class GuiAtlas extends GuiComponent {
             z += vector.getZ();
             buffer.pos(worldXToScreenX(x), worldZToScreenY(z), 0).color(red, green, blue, 0.8f).endVertex();
         }
-
-        Tessellator.getInstance().draw();
     }
 
     private boolean isOuterMarker(int markersStartX, int markersStartZ, int markersEndX, int markersEndZ, Marker marker) {
@@ -1377,7 +1377,7 @@ public class GuiAtlas extends GuiComponent {
 
         blinkingIcon.setTexture(markerFinalizer.selectedType.getIcon(), MARKER_SIZE, MARKER_SIZE);
         addChildBehind(markerFinalizer, blinkingIcon)
-                .setRelativeCoords(worldXToScreenX(pos.getX()) - getGuiX() - MARKER_SIZE / 2, worldZToScreenY(pos.getZ())- getGuiY() - MARKER_SIZE / 2);
+                .setRelativeCoords(worldXToScreenX(pos.getX()) - getGuiX() - MARKER_SIZE / 2, worldZToScreenY(pos.getZ()) - getGuiY() - MARKER_SIZE / 2);
 
         setInterceptKeyboard(true);
         KeyBinding.unPressAllKeys();
