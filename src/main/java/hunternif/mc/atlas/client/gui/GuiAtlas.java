@@ -11,6 +11,7 @@ import hunternif.mc.atlas.client.gui.core.GuiStates.SimpleState;
 import hunternif.mc.atlas.core.DimensionData;
 import hunternif.mc.atlas.event.MarkerClickedEvent;
 import hunternif.mc.atlas.event.MarkerHoveredEvent;
+import hunternif.mc.atlas.event.PathHoveredEvent;
 import hunternif.mc.atlas.map.objects.marker.DimensionMarkersData;
 import hunternif.mc.atlas.map.objects.marker.Marker;
 import hunternif.mc.atlas.map.objects.marker.MarkersData;
@@ -343,6 +344,7 @@ public class GuiAtlas extends GuiComponent {
      */
     protected Marker hoveredMarker;
     protected Marker hoveredOuterMarker;
+    protected Path hoveredPath;
 
     protected final GuiMarkerFinalizer markerFinalizer = new GuiMarkerFinalizer();
     /**
@@ -595,6 +597,8 @@ public class GuiAtlas extends GuiComponent {
             hoveredMarker = null;
         if (hoveredOuterMarker != null && !isVisibleMarker(hoveredOuterMarker))
             hoveredOuterMarker = null;
+        if (hoveredPath != null && !isVisiblePath(hoveredPath))
+            hoveredPath = null;
 
         if (!state.is(NORMAL) && !state.is(HIDING_MARKERS)) {
             int atlasID = getAtlasID();
@@ -622,12 +626,17 @@ public class GuiAtlas extends GuiComponent {
 
             } else if (hoveredMarker != null && !hoveredMarker.isGlobal() && isMouseOverMap && mouseState == 0) {
                 if (state.is(DELETING_MARKER))
-                    AtlasAPI.markers.deleteMarker(player.getEntityWorld(),
-                            atlasID, hoveredMarker.getId());
+                    AtlasAPI.markers.deleteMarker(player.getEntityWorld(), atlasID, hoveredMarker.getId());
+
                 else if (state.is(COPYING_MARKER))
                     copyMarker(hoveredMarker);
+
                 else if (state.is(PUBLISHING_MARKER))
                     publishMarker(hoveredMarker);
+
+            } else if (hoveredPath != null && isMouseOverMap && mouseState == 0) {
+                if (state.is(DELETING_MARKER))
+                    AtlasAPI.paths.deletePath(player.getEntityWorld(), atlasID, hoveredPath.id);
             }
             state.switchTo(NORMAL);
         } else if (isMouseOverMap && selectedButton == null) {
@@ -650,7 +659,11 @@ public class GuiAtlas extends GuiComponent {
     }
 
     private boolean isVisibleMarker(Marker hoveredMarker) {
-        return !state.is(HIDING_MARKERS) && isFilteredMarker(hoveredMarker);
+        return !state.is(HIDING_MARKERS) && isFilteredMarker(hoveredMarker.getLabel());
+    }
+
+    private boolean isVisiblePath(Path path) {
+        return !state.is(HIDING_MARKERS) && isFilteredMarker(path.label);
     }
 
     private void publishMarker(Marker marker) {
@@ -1012,12 +1025,15 @@ public class GuiAtlas extends GuiComponent {
                     List<Marker> markers = localMarkersData.getMarkersAtChunk(x, z);
                     if (markers == null) continue;
                     for (Marker marker : markers) {
-                        if (isFilteredMarker(marker))
+                        if (isFilteredMarker(marker.getLabel()))
                             renderMarker(marker, iconScale, worldXToScreenX(marker.getX()), worldZToScreenY(marker.getZ()), false);
                     }
                 }
             }
         }
+
+        hoveredPath = null;
+
         if (localPathsData != null) {
             Set<Path> paths = new HashSet<>();
             for (int x = markersStartX; x <= markersEndX; x++) {
@@ -1028,13 +1044,13 @@ public class GuiAtlas extends GuiComponent {
 
             GlStateManager.disableTexture2D();
             glEnable(GL_LINE_SMOOTH);
-            GlStateManager.glLineWidth((float) iconScale);
+            GlStateManager.glLineWidth((float) getPathScale());
 
             BufferBuilder buffer = Tessellator.getInstance().getBuffer();
             buffer.begin(GL11.GL_LINE_STRIP, DefaultVertexFormats.POSITION_COLOR);
 
             for (Path path : paths) {
-                renderPath(buffer, path, getPathScale(), markersStartX, markersEndX, markersStartZ, markersEndZ);
+                renderPath(buffer, path, markersStartX, markersEndX, markersStartZ, markersEndZ, mouseX, mouseY);
             }
 
             Tessellator.getInstance().draw();
@@ -1045,6 +1061,10 @@ public class GuiAtlas extends GuiComponent {
 
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
 
+        if (hoveredPath != null) {
+            drawTooltip(Collections.singletonList(hoveredPath.label), mc.fontRenderer);
+        }
+
         // Overlay the frame so that edges of the map are smooth:
         GlStateManager.color(1, 1, 1, 1);
         AtlasRenderHelper.drawFullTexture(Textures.BOOK_FRAME, getGuiX(), getGuiY(), WIDTH, HEIGHT);
@@ -1054,7 +1074,7 @@ public class GuiAtlas extends GuiComponent {
                 if (!btnFilterMarkers.getText().isEmpty()) {
                     for (Marker marker : localMarkersData.getAllMarkers()) {
                         if (isOuterMarker(markersStartX, markersStartZ, markersEndX, markersEndZ, marker)) {
-                            if (isFilteredMarker(marker)) {
+                            if (isFilteredMarker(marker.getLabel())) {
                                 GlStateManager.color(1, 1, 1, 0.3f);
                                 renderMarker(marker, iconScale,
                                         clamp(worldXToScreenX(marker.getX()), getGuiX() + CONTENT_X, getGuiX() + CONTENT_X + MAP_WIDTH),
@@ -1118,7 +1138,9 @@ public class GuiAtlas extends GuiComponent {
         }
     }
 
-    private void renderPath(BufferBuilder buffer, Path path, double iconScale, int markersStartX, int markersEndX, int markersStartZ, int markersEndZ) {
+    private void renderPath(BufferBuilder buffer, Path path,
+                            int markersStartX, int markersEndX, int markersStartZ, int markersEndZ,
+                            int mouseX, int mouseY) {
 
         float red = ((path.color >> 16) & 0xFF) / 255f;
         float green = ((path.color >> 8) & 0xFF) / 255f;
@@ -1127,7 +1149,14 @@ public class GuiAtlas extends GuiComponent {
         int x = path.startX;
         int z = path.startZ;
 
-        buffer.pos(worldXToScreenX(x), worldZToScreenY(z), 0).color(0, 0, 0, 0).endVertex();
+        int hoveringDistance = 3;
+
+        boolean mouseIsOverPath = false;
+
+        int prevScreenX = worldXToScreenX(x);
+        int prevScreenY = worldZToScreenY(z);
+
+        buffer.pos(prevScreenX, prevScreenY, 0).color(0, 0, 0, 0).endVertex();
 
         for (short segment : path.segments) {
             Vec3i vector = Segment.getVector(segment);
@@ -1135,8 +1164,58 @@ public class GuiAtlas extends GuiComponent {
                 break;
             x += vector.getX();
             z += vector.getZ();
-            buffer.pos(worldXToScreenX(x), worldZToScreenY(z), 0).color(red, green, blue, 0.8f).endVertex();
+            int currentScreenX = worldXToScreenX(x);
+            int currentScreenY = worldZToScreenY(z);
+            buffer.pos(currentScreenX, currentScreenY, 0).color(red, green, blue, 0.8f).endVertex();
+
+            if (!mouseIsOverPath) {
+                if (distanceToSec(mouseX, mouseY, prevScreenX, prevScreenY, currentScreenX, currentScreenY) < hoveringDistance) {
+                    mouseIsOverPath = true;
+                }
+            }
+
+            prevScreenX = currentScreenX;
+            prevScreenY = currentScreenY;
         }
+
+        if (mouseIsOverPath) {
+            hoveredPath = path;
+            MinecraftForge.EVENT_BUS.post(new PathHoveredEvent(player, path));
+        } else {
+            if (hoveredPath == path) {
+                hoveredPath = null;
+            }
+        }
+    }
+
+    private double distanceToSec(double mouseX, double mouseY, double px1, double py1, double px2, double py2) {
+        double x1 = px1 - mouseX;
+        double y1 = py1 - mouseY;
+        double x2 = px2 - mouseX;
+        double y2 = py2 - mouseY;
+        double x3 = px2 - px1;
+        double y3 = py2 - py1;
+
+        if (isIsoscelesTriangle(mouseX, mouseY, px1, py1, px2, py2)) {
+            double scalarProductDivLen = (x1 * x2 + y1 * y2) / (len(x1, y1) * len(x2, y2));
+            return (Math.sqrt(1 - scalarProductDivLen * scalarProductDivLen) * len(x1, y1) * len(x2, y2)) / len(x3, y3);
+
+        } else {
+            return Math.min(len(x1, y1), len(x2, y2));
+        }
+    }
+
+    private double len(double x, double y) {
+        return Math.sqrt(x * x + y * y);
+    }
+
+    private boolean isIsoscelesTriangle(double dot_x, double dot_y, double sec_x1, double sec_y1, double sec_x2, double sec_y2) {
+        if ((dot_x - sec_x2) * (sec_x1 - sec_x2) + (dot_y - sec_y2) * (sec_y1 - sec_y2) <= 0) {
+            return false;
+        } else if ((dot_x - sec_x1) * (sec_x2 - sec_x1) + (dot_y - sec_y1) * (sec_y2 - sec_y1) <= 0) {
+            return false;
+        } else
+            return true;
     }
 
     private boolean isOuterMarker(int markersStartX, int markersStartZ, int markersEndX, int markersEndZ, Marker marker) {
@@ -1145,8 +1224,8 @@ public class GuiAtlas extends GuiComponent {
         return largeChunkX < markersStartX || largeChunkX > markersEndX || largeChunkZ < markersStartZ || largeChunkZ > markersEndZ;
     }
 
-    private boolean isFilteredMarker(Marker marker) {
-        return marker.getLabel().toLowerCase().contains(btnFilterMarkers.getText());
+    private boolean isFilteredMarker(String label) {
+        return label.toLowerCase().contains(btnFilterMarkers.getText());
     }
 
     protected void renderScaleOverlay(long deltaMillis) {
