@@ -2,6 +2,9 @@ package hunternif.mc.atlas.core;
 
 import hunternif.mc.atlas.AntiqueAtlasMod;
 import hunternif.mc.atlas.map.objects.marker.MarkersData;
+import hunternif.mc.atlas.map.objects.path.DimensionPathsData;
+import hunternif.mc.atlas.map.objects.path.PathsData;
+import hunternif.mc.atlas.network.client.PathsPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -26,6 +29,8 @@ public class PlayerEventHandler {
         if (!markers.isEmpty()) {
             markers.syncOnPlayer(atlasID, player);
         }
+
+        AntiqueAtlasMod.pathsData.getOrCreate(atlasID, world).syncOnPlayer(player);
     }
 
     @SubscribeEvent

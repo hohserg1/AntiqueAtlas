@@ -2,6 +2,7 @@ package hunternif.mc.atlas.client.ariadne.thread;
 
 import hunternif.mc.atlas.AntiqueAtlasMod;
 import hunternif.mc.atlas.item.ItemAriadneThread;
+import hunternif.mc.atlas.map.objects.path.Segment;
 import hunternif.mc.atlas.network.PacketDispatcher;
 import hunternif.mc.atlas.network.server.FlushAriadneThreadPoses;
 import net.minecraft.client.Minecraft;
@@ -10,6 +11,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -19,20 +21,19 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import java.util.ArrayList;
 import java.util.List;
 
-import static hunternif.mc.atlas.item.ItemAriadneThread.maxQueueSize;
 import static net.minecraft.util.math.Vec3d.ZERO;
 
 @Mod.EventBusSubscriber(modid = AntiqueAtlasMod.ID, value = Side.CLIENT)
 public class RecordingHandler {
     public static final long maxFlushPeriodMS = 1000 * 60;
-    public static final long maxPeriodWithoutAddingMS = 1000 * 60 * 5;
+    public static final double maxRecordingDistanceSq = (Segment.maxDistance - 2) * (Segment.maxDistance - 2);
     public static final double directionAngleValueableDifference = Math.toRadians(45 / 2);
     private static long lastFlushTime = 0;
-    private static long lastAddTime = 0;
     private static Vec3d direction;
-    private static int ticks = 0;
     private static boolean recording = false;
-    private static List<BlockPos> sendQueue = new ArrayList<>();
+    private static List<Short> sendQueue = new ArrayList<>();
+
+    private static BlockPos lastPos;
 
     public static boolean isActive() {
         return recording;
@@ -41,14 +42,13 @@ public class RecordingHandler {
     public static void start(ItemStack heldItem) {
         if (!recording) {
             recording = true;
-            RenderHandler.load(heldItem);
-            addPos();
+            lastPos = RenderHandler.load(heldItem);
         }
     }
 
     public static void stop() {
         if (recording) {
-            addPos();
+            addSegment();
             flush();
             RenderHandler.clear();
             recording = false;
@@ -60,10 +60,11 @@ public class RecordingHandler {
     @SubscribeEvent
     public static void tick(TickEvent.ClientTickEvent event) {
         if (recording) {
-            ticks++;
             EntityPlayerSP player = Minecraft.getMinecraft().player;
-            if (player == null)
+            if (player == null) {
+                recording = false;
                 return;
+            }
 
             int activeItem = getActiveItem(player);
             if (activeItem == -2) {
@@ -76,17 +77,17 @@ public class RecordingHandler {
 
             if (diff(direction, getCurrentDirection()) > directionAngleValueableDifference) {
                 direction = getCurrentDirection();
-                addPos();
+                addSegment();
 
             } else {
-                long currentTimeMillis = System.currentTimeMillis();
-                if (currentTimeMillis - lastAddTime > maxPeriodWithoutAddingMS) {
-                    addPos();
+                BlockPos current = ItemAriadneThread.posOfPlayer(player);
+                if (current.distanceSq(lastPos) >= 289) {
+                    addSegment();
                 }
             }
 
             long currentTimeMillis = System.currentTimeMillis();
-            if (currentTimeMillis - lastFlushTime >= maxFlushPeriodMS) {
+            if (currentTimeMillis - lastFlushTime >= maxFlushPeriodMS || sendQueue.size() == ItemAriadneThread.maxQueueSize) {
                 lastFlushTime = currentTimeMillis;
                 flush();
             }
@@ -124,27 +125,37 @@ public class RecordingHandler {
         return -2;
     }
 
-    public static void addPos() {
+    public static boolean addSegment() {
         EntityPlayerSP player = Minecraft.getMinecraft().player;
-        BlockPos pos = new BlockPos(player.posX, player.posY + 0.5D, player.posZ);
-        if (!sendQueue.isEmpty() && sendQueue.get(sendQueue.size() - 1).distanceSq(pos) < 9)
-            return;
+        BlockPos pos = ItemAriadneThread.posOfPlayer(player);
+        if (lastPos.equals(pos))
+            return false;
 
         RenderHandler.addPos(pos);
-        sendQueue.add(pos);
-        lastAddTime = System.currentTimeMillis();
+        short index = Segment.getIndex(lastPos, pos);
+
+        if (index >= 0) {
+
+            BlockPos vector1 = pos.subtract(lastPos);
+            BlockPos vector2 = new BlockPos(Segment.getVector(index));
+            if (!vector1.equals(vector2))
+                System.out.println("bruh, violated segment index, lastPos=" + lastPos + ", current=" + pos + ", index=" + index + ", vector1=" + vector1 + ", vector2=" + vector2);
+
+            sendQueue.add(index);
+            lastPos = pos;
+            return true;
+        } else {
+            recording = false;
+            RenderHandler.clear();
+            player.sendStatusMessage(new TextComponentTranslation("msg.too.far"), true);
+            return false;
+        }
     }
 
     public static void flush() {
-
         if (sendQueue.isEmpty())
             return;
 
-        if (sendQueue.size() > maxQueueSize) {
-            sendQueue.subList(maxQueueSize - 1, sendQueue.size()).clear();
-            RenderHandler.clearLast(sendQueue.size() - maxQueueSize + 1);
-            addPos();
-        }
         int activeItem = getActiveItem(Minecraft.getMinecraft().player);
         if (activeItem >= -1) {
             PacketDispatcher.sendToServer(new FlushAriadneThreadPoses(activeItem, sendQueue));

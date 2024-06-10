@@ -25,7 +25,7 @@ class SetTileRenderer {
         this.tileHalfSize = tileHalfSize;
     }
 
-    public void addTileCorner(ResourceLocation texture, int x, int y, int u, int v) {
+    public void addTileCorner(ResourceLocation texture, double x, double y, double u, double v) {
         ArrayList<TileCorner> set = subjects.computeIfAbsent(texture, k -> new ArrayList<>());
         set.add(new TileCorner(x, y, u, v));
     }
@@ -46,11 +46,11 @@ class SetTileRenderer {
         }
     }
 
-    private void drawInlineAutotileCorner(int x, int y, int u, int v) {
-        float minU = u / 4f;
-        float maxU = (u + 1) / 4f;
-        float minV = v / 6f;
-        float maxV = (v + 1) / 6f;
+    private void drawInlineAutotileCorner(double x, double y, double u, double v) {
+        double minU = u / 4f;
+        double maxU = (u + 1) / 4f;
+        double minV = v / 6f;
+        double maxV = (v + 1) / 6f;
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder renderer = tessellator.getBuffer();
         renderer.pos(x + tileHalfSize, y + tileHalfSize, 0).tex(maxU, maxV).endVertex();
@@ -60,9 +60,9 @@ class SetTileRenderer {
     }
 
     public class TileCorner {
-        final int x, y, u, v;
+        final double x, y, u, v;
 
-        TileCorner(int x, int y, int u, int v) {
+        TileCorner(double x, double y, double u, double v) {
             this.x = x;
             this.y = y;
             this.u = u;

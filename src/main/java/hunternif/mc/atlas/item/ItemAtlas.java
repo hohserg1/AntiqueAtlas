@@ -1,13 +1,14 @@
 package hunternif.mc.atlas.item;
 
-import java.util.ArrayList;
-
 import hunternif.mc.atlas.AntiqueAtlasMod;
 import hunternif.mc.atlas.core.AtlasData;
 import hunternif.mc.atlas.core.TileInfo;
 import hunternif.mc.atlas.map.objects.marker.MarkersData;
+import hunternif.mc.atlas.map.objects.path.PathsData;
 import hunternif.mc.atlas.network.PacketDispatcher;
-import hunternif.mc.atlas.network.client.*;
+import hunternif.mc.atlas.network.client.IntDimensionUpdatePacket;
+import hunternif.mc.atlas.network.client.ShortDimensionUpdatePacket;
+import hunternif.mc.atlas.network.client.TilesPacket;
 import hunternif.mc.atlas.util.MathUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -19,64 +20,70 @@ import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumHand;
 import net.minecraft.world.World;
 
+import java.util.ArrayList;
+
 public class ItemAtlas extends Item {
-	public static final String WORLD_ATLAS_DATA_ID = "aAtlas";
+    public static final String WORLD_ATLAS_DATA_ID = "aAtlas";
 
-	{
-		setRegistryName("antique_atlas");
-	    setTranslationKey("antiqueAtlas");
-		setHasSubtypes(true);
-	}
+    {
+        setRegistryName("antique_atlas");
+        setTranslationKey("antiqueAtlas");
+        setHasSubtypes(true);
+    }
 
-	@Override
-	public String getItemStackDisplayName(ItemStack stack) {
-		return super.getItemStackDisplayName(stack) + " #" + stack.getItemDamage();
-	}
+    @Override
+    public String getItemStackDisplayName(ItemStack stack) {
+        return super.getItemStackDisplayName(stack) + " #" + stack.getItemDamage();
+    }
 
-	@Override
-	public ActionResult<ItemStack> onItemRightClick(World world, EntityPlayer playerIn,
-			EnumHand hand) {
-		ItemStack stack = playerIn.getHeldItem(hand);
+    @Override
+    public ActionResult<ItemStack> onItemRightClick(World world, EntityPlayer playerIn,
+                                                    EnumHand hand) {
+        ItemStack stack = playerIn.getHeldItem(hand);
 
-		if (world.isRemote) {
-			AntiqueAtlasMod.proxy.openAtlasGUI(stack);
-		}
+        if (world.isRemote) {
+            AntiqueAtlasMod.proxy.openAtlasGUI(stack);
+        }
 
-		return new ActionResult<>(EnumActionResult.SUCCESS, stack);
-	}
+        return new ActionResult<>(EnumActionResult.SUCCESS, stack);
+    }
 
-	@Override
-	public void onUpdate(ItemStack stack, World world, Entity entity, int slot, boolean isEquipped) {
-		AtlasData data = AntiqueAtlasMod.atlasData.getAtlasData(stack, world);
-		if (data == null || !(entity instanceof EntityPlayer)) return;
+    @Override
+    public void onUpdate(ItemStack stack, World world, Entity entity, int slot, boolean isEquipped) {
+        AtlasData data = AntiqueAtlasMod.atlasData.getAtlasData(stack, world);
+        if (data == null || !(entity instanceof EntityPlayer)) return;
 
-		// On the first run send the map from the server to the client:
-		EntityPlayer player = (EntityPlayer) entity;
-		if (!world.isRemote && !data.isSyncedOnPlayer(player) && !data.isEmpty()) {
-			data.syncOnPlayer(stack.getItemDamage(), player);
-		}
+        // On the first run send the map from the server to the client:
+        EntityPlayer player = (EntityPlayer) entity;
+        if (!world.isRemote && !data.isSyncedOnPlayer(player) && !data.isEmpty()) {
+            data.syncOnPlayer(stack.getItemDamage(), player);
+        }
 
-		// Same thing with the local markers:
-		MarkersData markers = AntiqueAtlasMod.markersData.getMarkersData(stack, world);
-		if (!world.isRemote && !markers.isSyncedOnPlayer(player) && !markers.isEmpty()) {
-			markers.syncOnPlayer(stack.getItemDamage(), player);
-		}
+        // Same thing with the local markers:
+        MarkersData markers = AntiqueAtlasMod.markersData.getMarkersData(stack, world);
+        if (!world.isRemote && !markers.isSyncedOnPlayer(player) && !markers.isEmpty()) {
+            markers.syncOnPlayer(stack.getItemDamage(), player);
+        }
+        PathsData paths = AntiqueAtlasMod.pathsData.getOrCreate(stack, world);
+        if (!world.isRemote && !paths.isSyncedOnPlayer(player)) {
+            paths.syncOnPlayer(player);
+        }
 
-		// Updating map around player
-		ArrayList<TileInfo> newTiles = data.updateMapAroundPlayer(player);
-		
-		if (!world.isRemote) {
-			if (newTiles.size() > 0) {
-				boolean useInt = newTiles.stream().anyMatch(t -> MathUtil.exceedsShort(t.x, t.z));
-				TilesPacket packet = useInt
-						? new IntDimensionUpdatePacket(stack.getItemDamage(), player.dimension)
-						: new ShortDimensionUpdatePacket(stack.getItemDamage(), player.dimension);
-				for (TileInfo t : newTiles) {
-					packet.addTile(t.x, t.z, t.biome);
-				}
-				PacketDispatcher.sendTo(packet, (EntityPlayerMP) player);
-			}
-		}
-	}
+        // Updating map around player
+        ArrayList<TileInfo> newTiles = data.updateMapAroundPlayer(player);
+
+        if (!world.isRemote) {
+            if (newTiles.size() > 0) {
+                boolean useInt = newTiles.stream().anyMatch(t -> MathUtil.exceedsShort(t.x, t.z));
+                TilesPacket packet = useInt
+                        ? new IntDimensionUpdatePacket(stack.getItemDamage(), player.dimension)
+                        : new ShortDimensionUpdatePacket(stack.getItemDamage(), player.dimension);
+                for (TileInfo t : newTiles) {
+                    packet.addTile(t.x, t.z, t.biome);
+                }
+                PacketDispatcher.sendTo(packet, (EntityPlayerMP) player);
+            }
+        }
+    }
 
 }

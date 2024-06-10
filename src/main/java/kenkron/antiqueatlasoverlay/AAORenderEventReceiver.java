@@ -9,6 +9,9 @@ import hunternif.mc.atlas.core.DimensionData;
 import hunternif.mc.atlas.map.objects.marker.DimensionMarkersData;
 import hunternif.mc.atlas.map.objects.marker.Marker;
 import hunternif.mc.atlas.map.objects.marker.MarkersData;
+import hunternif.mc.atlas.map.objects.path.DimensionPathsData;
+import hunternif.mc.atlas.map.objects.path.Path;
+import hunternif.mc.atlas.map.objects.path.Segment;
 import hunternif.mc.atlas.registry.MarkerRegistry;
 import hunternif.mc.atlas.registry.MarkerRenderInfo;
 import hunternif.mc.atlas.registry.MarkerType;
@@ -19,19 +22,27 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vec3i;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.opengl.GL11;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
+import static org.lwjgl.opengl.GL11.*;
 
 @Mod.EventBusSubscriber(modid = AntiqueAtlasOverlayMod.MODID)
 public class AAORenderEventReceiver {
@@ -118,11 +129,11 @@ public class AAORenderEventReceiver {
 
             bounds.setSize(AAOConfig.position.width, AAOConfig.position.height);
             res = event.getResolution();
-            drawMinimap(bounds, atlas, player.getPositionVector(), player.getRotationYawHead(), player.dimension);
+            drawMinimap(bounds, atlas, player.getPositionEyes(event.getPartialTicks()), player.getRotationYawHead(), player.dimension);
         }
     }
 
-    public static void drawMinimap(Rect shape, int atlasID, Vec3d position, float rotation, int dimension) {
+    public static void drawMinimap(Rect shape, int atlasID, Vec3d playerPos, float rotation, int dimension) {
         screenScale = new ScaledResolution(Minecraft.getMinecraft()).getScaleFactor();
         GlStateManager.color(1, 1, 1, 1);
         GlStateManager.enableBlend();
@@ -135,14 +146,16 @@ public class AAORenderEventReceiver {
                 shape.minY + Math.round(AAOConfig.appearance.borderY * shape.getHeight()),
                 shape.maxX - Math.round(AAOConfig.appearance.borderX * shape.getWidth()),
                 shape.maxY - Math.round(AAOConfig.appearance.borderY * shape.getHeight()));
-        drawTiles(innerShape, atlasID, position, dimension);
+        drawTiles(innerShape, atlasID, playerPos, dimension);
 
         if (AAOConfig.appearance.markerSize > 0) {
-            drawMarkers(innerShape, atlasID, position, dimension);
+            drawMarkers(innerShape, atlasID, playerPos, dimension);
             int shapeMiddleX = (shape.minX + shape.maxX) / 2;
             int shapeMiddleY = (shape.minY + shape.maxY) / 2;
             drawPlayer(shapeMiddleX, shapeMiddleY, rotation);
         }
+
+        drawPaths(innerShape, atlasID, playerPos, dimension);
 
         // Overlay the frame so that edges of the map are smooth:
         GlStateManager.color(1, 1, 1, 1);
@@ -172,31 +185,30 @@ public class AAORenderEventReceiver {
         fontRenderer.drawStringWithShadow(line, x, y, 0xffffffff);
     }
 
-    private static void drawTiles(Rect shape, int atlasID, Vec3d position,
+    private static void drawTiles(Rect shape, int atlasID, Vec3d playerPos,
                                   int dimension) {
-        if (!isBook) {
-            GL11.glEnable(GL11.GL_SCISSOR_TEST);
-            // glScissor uses the default window coordinates,
-            // the display window does not. We need to fix this
-            glScissorGUI(shape);
-        }
+        GL11.glEnable(GL11.GL_SCISSOR_TEST);
+        // glScissor uses the default window coordinates,
+        // the display window does not. We need to fix this
+        glScissorGUI(shape);
+
         GlStateManager.enableBlend();
         GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 
-        DimensionData biomeData = AntiqueAtlasMod.atlasData.getAtlasData(
-                atlasID, Minecraft.getMinecraft().world).getDimensionData(dimension);
+        DimensionData biomeData = AntiqueAtlasMod.atlasData.getAtlasData(atlasID, Minecraft.getMinecraft().world).getDimensionData(dimension);
 
         TileRenderIterator iter = new TileRenderIterator(biomeData);
-        Rect iteratorScope = getChunkCoverage(position, shape);
+        Rect iteratorScope = getChunkCoverage(playerPos, shape);
         iter.setScope(iteratorScope);
 
         iter.setStep(1);
         Vec3d chunkPosition = new Vec3d(
-                position.x / CHUNK_SIZE,
-                position.y / CHUNK_SIZE,
-                position.z / CHUNK_SIZE);
-        int shapeMiddleX = (shape.minX + shape.maxX) / 2;
-        int shapeMiddleY = (shape.minY + shape.maxY) / 2;
+                playerPos.x / CHUNK_SIZE,
+                playerPos.y / CHUNK_SIZE,
+                playerPos.z / CHUNK_SIZE
+        );
+        double shapeMiddleX = (shape.minX + shape.maxX) / 2d;
+        double shapeMiddleY = (shape.minY + shape.maxY) / 2d;
         SetTileRenderer renderer = new SetTileRenderer(AAOConfig.appearance.tileSize / 2);
 
         while (iter.hasNext()) {
@@ -206,36 +218,97 @@ public class AAORenderEventReceiver {
                     continue;
                 // Position of this subtile (measured in chunks) relative to the
                 // player
-                float relativeChunkPositionX = (float) (subtile.x / 2.0
-                        + iteratorScope.minX - chunkPosition.x);
-                float relativeChunkPositionY = (float) (subtile.y / 2.0
-                        + iteratorScope.minY - chunkPosition.z);
+                //          shapeMiddleX - AAOConfig.appearance.markerSize / 2d + AAOConfig.appearance.tileSize * (2 * (x / 2d) - 2 * Math.floor(playerPos.x / 2d)) / CHUNK_SIZE
+                double xx = shapeMiddleX + (subtile.x / 2d + iteratorScope.minX - chunkPosition.x) * AAOConfig.appearance.tileSize;
+                double yy = shapeMiddleY + (subtile.y / 2d + iteratorScope.minY - chunkPosition.z) * AAOConfig.appearance.tileSize;
+
                 renderer.addTileCorner(
                         BiomeTextureMap.instance().getTexture(subtile.tile),
-                        shapeMiddleX
-                                + (int) Math.floor(relativeChunkPositionX
-                                * AAOConfig.appearance.tileSize),
-                        shapeMiddleY
-                                + (int) Math.floor(relativeChunkPositionY
-                                * AAOConfig.appearance.tileSize), subtile.getTextureU(),
-                        subtile.getTextureV());
+                        xx,
+                        yy,
+                        subtile.getTextureU(),
+                        subtile.getTextureV()
+                );
             }
         }
         renderer.draw();
         // get GL back to normal
-        if (!isBook)
-            GL11.glDisable(GL11.GL_SCISSOR_TEST);
+        GL11.glDisable(GL11.GL_SCISSOR_TEST);
+
         GlStateManager.color(1, 1, 1, 1);
     }
 
-    private static void drawMarkers(Rect shape, int atlasID, Vec3d position, int dimension) {
+    private static void drawPaths(Rect shape, int atlasID, Vec3d playerPos, int dimension) {
+        GL11.glEnable(GL11.GL_SCISSOR_TEST);
+        glScissorGUI(shape);
+        GlStateManager.disableTexture2D();
+        glEnable(GL_LINE_SMOOTH);
+        GlStateManager.glLineWidth((float) 1);
 
-        if (!isBook) {
-            GL11.glEnable(GL11.GL_SCISSOR_TEST);
-            // glScissor uses the default window coordinates,
-            // the display window does not. We need to fix this
-            glScissorGUI(shape);
+        DimensionPathsData dimensionPathsData = AntiqueAtlasMod.pathsData.getOrCreate(atlasID, Minecraft.getMinecraft().world).get(dimension);
+
+        Rect mcchunks = getChunkCoverage(playerPos, shape);
+        Rect chunks = new Rect((int) Math.floor(mcchunks.minX / MarkersData.CHUNK_STEP),
+                (int) Math.floor(mcchunks.minY / MarkersData.CHUNK_STEP),
+                (int) Math.ceil(mcchunks.maxX / MarkersData.CHUNK_STEP),
+                (int) Math.ceil(mcchunks.maxY / MarkersData.CHUNK_STEP));
+
+        double shapeMiddleX = (shape.minX + shape.maxX) / 2d;
+        double shapeMiddleY = (shape.minY + shape.maxY) / 2d;
+
+        Set<Path> paths = new HashSet<>();
+        for (int x = chunks.minX; x <= chunks.maxX; x++) {
+            for (int z = chunks.minY; z <= chunks.maxY; z++) {
+                paths.addAll(dimensionPathsData.getPathsInChunk(x, z));
+            }
         }
+
+        for (Path path : paths) {
+
+            float red = ((path.color >> 16) & 0xFF) / 255f;
+            float green = ((path.color >> 8) & 0xFF) / 255f;
+            float blue = (path.color & 0xFF) / 255f;
+
+            int x = path.startX;
+            int z = path.startZ;
+
+            BufferBuilder buffer = Tessellator.getInstance().getBuffer();
+            buffer.begin(GL11.GL_LINE_STRIP, DefaultVertexFormats.POSITION_COLOR);
+
+            buffer.pos(worldXToScreenX(playerPos, shapeMiddleX, x) + AAOConfig.appearance.markerSize / 2d, worldZToScreenY(playerPos, shapeMiddleY, z) + AAOConfig.appearance.markerSize / 2d, 0).color(red, green, blue, 0.8f).endVertex();
+
+            for (short segment : path.segments) {
+                Vec3i vector = Segment.getVector(segment);
+                if (vector == null)
+                    break;
+                x += vector.getX();
+                z += vector.getZ();
+                buffer.pos(worldXToScreenX(playerPos, shapeMiddleX, x) + AAOConfig.appearance.markerSize / 2d, worldZToScreenY(playerPos, shapeMiddleY, z) + AAOConfig.appearance.markerSize / 2d, 0).color(red, green, blue, 0.8f).endVertex();
+            }
+
+            Tessellator.getInstance().draw();
+        }
+
+        glDisable(GL_LINE_SMOOTH);
+        GlStateManager.enableTexture2D();
+        GL11.glDisable(GL11.GL_SCISSOR_TEST);
+        GlStateManager.color(1, 1, 1, 1);
+    }
+
+    private static double worldZToScreenY(Vec3d playerPos, double shapeMiddleY, double z) {
+        return shapeMiddleY - AAOConfig.appearance.markerSize / 2d + AAOConfig.appearance.tileSize * (z - playerPos.z) / CHUNK_SIZE;
+    }
+
+    private static double worldXToScreenX(Vec3d playerPos, double shapeMiddleX, double x) {
+        return shapeMiddleX - AAOConfig.appearance.markerSize / 2d + AAOConfig.appearance.tileSize * (x - playerPos.x) / CHUNK_SIZE;
+    }
+
+
+    private static void drawMarkers(Rect shape, int atlasID, Vec3d playerPos, int dimension) {
+        GL11.glEnable(GL11.GL_SCISSOR_TEST);
+        // glScissor uses the default window coordinates,
+        // the display window does not. We need to fix this
+        glScissorGUI(shape);
 
         // biomeData needed to prevent undiscovered markers from appearing
         DimensionData biomeData = AntiqueAtlasMod.atlasData.getAtlasData(
@@ -245,7 +318,7 @@ public class AAORenderEventReceiver {
                 .getData().getMarkersDataInDimension(dimension);
 
         // Draw global markers:
-        drawMarkersData(globalMarkersData, shape, biomeData, position);
+        drawMarkersData(globalMarkersData, shape, biomeData, playerPos);
 
         MarkersData markersData = AntiqueAtlasMod.markersData.getMarkersData(
                 atlasID, Minecraft.getMinecraft().world);
@@ -255,11 +328,11 @@ public class AAORenderEventReceiver {
         }
 
         // Draw local markers:
-        drawMarkersData(localMarkersData, shape, biomeData, position);
+        drawMarkersData(localMarkersData, shape, biomeData, playerPos);
 
         // get GL back to normal
-        if (!isBook)
-            GL11.glDisable(GL11.GL_SCISSOR_TEST);
+        GL11.glDisable(GL11.GL_SCISSOR_TEST);
+
         GlStateManager.color(1, 1, 1, 1);
     }
 
@@ -276,48 +349,35 @@ public class AAORenderEventReceiver {
     }
 
     private static void drawMarkersData(DimensionMarkersData markersData,
-                                        Rect shape, DimensionData biomeData, Vec3d position) {
+                                        Rect shape, DimensionData biomeData, Vec3d playerPos) {
 
         //this will be large enough to include markers that are larger than tiles
         Rect markerShape = new Rect(shape.minX - AAOConfig.appearance.markerSize / 2, shape.minY - AAOConfig.appearance.markerSize / 2,
                 shape.maxX + AAOConfig.appearance.markerSize / 2, shape.maxY + AAOConfig.appearance.markerSize / 2);
 
-        Rect mcchunks = getChunkCoverage(position, markerShape);
+        Rect mcchunks = getChunkCoverage(playerPos, markerShape);
         Rect chunks = new Rect((int) Math.floor(mcchunks.minX / MarkersData.CHUNK_STEP),
                 (int) Math.floor(mcchunks.minY / MarkersData.CHUNK_STEP),
                 (int) Math.ceil(mcchunks.maxX / MarkersData.CHUNK_STEP),
                 (int) Math.ceil(mcchunks.maxY / MarkersData.CHUNK_STEP));
 
-        int shapeMiddleX = (shape.minX + shape.maxX) / 2;
-        int shapeMiddleY = (shape.minY + shape.maxY) / 2;
+        double shapeMiddleX = (shape.minX + shape.maxX) / 2d;
+        double shapeMiddleY = (shape.minY + shape.maxY) / 2d;
 
         for (int x = chunks.minX; x <= chunks.maxX; x++) {
             for (int z = chunks.minY; z <= chunks.maxY; z++) {
-                //A marker chunk is greater than a Minecraft chunk
-                List<Marker> markers = markersData.getMarkersAtChunk(
-                        Math.round(x),
-                        Math.round(z));
+                List<Marker> markers = markersData.getMarkersAtChunk(x, z);
                 if (markers == null)
                     continue;
                 for (Marker marker : markers) {
-                    // Position of this marker relative to the player
-                    // Rounded to the nearest even number
-                    int relativeChunkPositionX = AAOConfig.appearance.tileSize * (2 * (marker.getX() / 2) - 2 * (int) Math.floor(position.x / 2))
-                            / CHUNK_SIZE;
-                    int relativeChunkPositionY = AAOConfig.appearance.tileSize * (2 * (marker.getZ() / 2) - 2 * (int) Math.floor(position.z / 2))
-                            / CHUNK_SIZE;
-                    int guiX = (int) Math.floor(shapeMiddleX - AAOConfig.appearance.markerSize / 2 + relativeChunkPositionX);
-                    int guiY = (int) Math.floor(shapeMiddleY - AAOConfig.appearance.markerSize / 2 + relativeChunkPositionY);
-                    renderMarker(marker, guiX, guiY, biomeData);
+                    renderMarker(marker, worldXToScreenX(playerPos, shapeMiddleX, marker.getX()), worldZToScreenY(playerPos, shapeMiddleY, marker.getZ()), biomeData);
                 }
             }
         }
     }
 
-    private static void renderMarker(Marker marker, int x, int y,
-                                     DimensionData biomeData) {
-        if (!marker.isVisibleAhead()
-                && !biomeData.hasTileAt(marker.getChunkX(), marker.getChunkZ())) {
+    private static void renderMarker(Marker marker, double x, double y, DimensionData biomeData) {
+        if (!marker.isVisibleAhead() && (biomeData == null || !biomeData.hasTileAt(marker.getChunkX(), marker.getChunkZ()))) {
             return;
         }
         GlStateManager.color(1, 1, 1, 1);
@@ -326,6 +386,8 @@ public class AAORenderEventReceiver {
             return;
         }
         MarkerRenderInfo info = m.getRenderInfo(1, AAOConfig.appearance.tileSize, screenScale);
+
+
         AtlasRenderHelper.drawFullTexture(info.tex, x, y, AAOConfig.appearance.markerSize, AAOConfig.appearance.markerSize);
     }
 
@@ -345,7 +407,7 @@ public class AAORenderEventReceiver {
         return new Rect(minChunkX, minChunkY, maxChunkX, maxChunkY);
     }
 
-    public static boolean isBook = false;
+    public static final boolean isBook = false;
 
     /**
      * Calls GL11.glScissor, but uses GUI coordinates

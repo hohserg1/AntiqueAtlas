@@ -33,3 +33,5 @@ key.antiqueatlas.category=Antique Atlas
 
 gui.antiqueatlas.filterMarkers=Фильтровать маркеры
 gui.antiqueatlas.publishMarker=Поделиться маркером
+
+msg.too.far=Слишком далеко от предыдущей позиции

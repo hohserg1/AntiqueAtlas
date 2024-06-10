@@ -3,11 +3,11 @@ package hunternif.mc.atlas.network.server;
 import com.google.common.base.Preconditions;
 import hunternif.mc.atlas.RegistrarAntiqueAtlas;
 import hunternif.mc.atlas.item.ItemAriadneThread;
+import hunternif.mc.atlas.map.objects.path.Segment;
 import hunternif.mc.atlas.network.AbstractMessage;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.relauncher.Side;
 
 import java.io.IOException;
@@ -18,15 +18,15 @@ import static hunternif.mc.atlas.item.ItemAriadneThread.maxQueueSize;
 
 public class FlushAriadneThreadPoses extends AbstractMessage.AbstractServerMessage<FlushAriadneThreadPoses> {
     private int itemSlot;
-    private List<BlockPos> poses;
+    private List<Short> additionalSegments;
 
     public FlushAriadneThreadPoses() {
     }
 
-    public FlushAriadneThreadPoses(int itemSlot, List<BlockPos> poses) {
+    public FlushAriadneThreadPoses(int itemSlot, List<Short> additionalSegments) {
         this.itemSlot = itemSlot;
-        this.poses = poses;
-        Preconditions.checkArgument(poses.size() <= maxQueueSize, "too many poses at once");
+        this.additionalSegments = additionalSegments;
+        Preconditions.checkArgument(additionalSegments.size() <= maxQueueSize, "too many poses at once");
     }
 
     @Override
@@ -37,19 +37,22 @@ public class FlushAriadneThreadPoses extends AbstractMessage.AbstractServerMessa
         if (posesCount > maxQueueSize)
             throw new IOException("too many poses at once. hacking?");
 
-        poses = new ArrayList<>(posesCount);
+
+        additionalSegments = new ArrayList<>(posesCount);
         for (int i = 0; i < posesCount; i++) {
-            poses.add(BlockPos.fromLong(buffer.readLong()));
+            short segment = buffer.readShort();
+            if (0 <= segment && segment <= Segment.maxIndex)
+                additionalSegments.add(segment);
+            else
+                throw new IOException("illegal segment index(" + segment + "). hacking? ");
         }
     }
 
     @Override
     protected void write(PacketBuffer buffer) throws IOException {
         buffer.writeByte(itemSlot);
-        buffer.writeByte(poses.size());
-        for (BlockPos p : poses) {
-            buffer.writeLong(p.toLong());
-        }
+        buffer.writeByte(additionalSegments.size());
+        additionalSegments.forEach(buffer::writeShort);
     }
 
     @Override
@@ -63,7 +66,7 @@ public class FlushAriadneThreadPoses extends AbstractMessage.AbstractServerMessa
             return;
 
         if (stack.getItem() == RegistrarAntiqueAtlas.ARIADNE_THREAD) {
-            ItemAriadneThread.append(stack, poses);
+            ItemAriadneThread.append(stack, additionalSegments);
         }
     }
 }

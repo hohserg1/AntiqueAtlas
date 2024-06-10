@@ -2,6 +2,7 @@ package hunternif.mc.atlas.network;
 
 import hunternif.mc.atlas.AntiqueAtlasMod;
 import hunternif.mc.atlas.network.bidirectional.DeleteMarkerPacket;
+import hunternif.mc.atlas.network.bidirectional.DeletePathPacket;
 import hunternif.mc.atlas.network.bidirectional.PutBiomeTilePacket;
 import hunternif.mc.atlas.network.client.*;
 import hunternif.mc.atlas.network.server.AddMarkerPacket;
@@ -53,6 +54,8 @@ public class PacketDispatcher
 		registerMessage(IntDimensionUpdatePacket.class);
 		registerMessage(OptionalMarkerPacket.class);
 		registerMessage(FlushAriadneThreadPoses.class);
+		registerMessage(DeletePathPacket.class);
+		registerMessage(PathsPacket.class);
 
 		if(Loader.isModLoaded("immersiveengineering"))
 			registerMessage(PickupSamplePacket.class);

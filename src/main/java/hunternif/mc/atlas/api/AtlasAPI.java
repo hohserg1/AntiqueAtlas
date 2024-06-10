@@ -2,6 +2,7 @@ package hunternif.mc.atlas.api;
 
 import hunternif.mc.atlas.SettingsConfig;
 import hunternif.mc.atlas.api.impl.MarkerApiImpl;
+import hunternif.mc.atlas.api.impl.PathApiImpl;
 import hunternif.mc.atlas.api.impl.TileApiImpl;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
@@ -20,6 +21,7 @@ public class AtlasAPI {
 	private static final int VERSION = 4;
 	public static final TileAPI tiles = new TileApiImpl();
 	public static final MarkerAPI markers = new MarkerApiImpl();
+	public static final PathAPI paths = new PathApiImpl();
 	@GameRegistry.ObjectHolder("antiqueatlas:antique_atlas")
 	public static final Item ATLAS_ITEM = new Item();
 	

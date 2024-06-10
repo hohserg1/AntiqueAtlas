@@ -2,6 +2,7 @@ package hunternif.mc.atlas.client.ariadne.thread;
 
 import hunternif.mc.atlas.AntiqueAtlasMod;
 import hunternif.mc.atlas.item.ItemAriadneThread;
+import hunternif.mc.atlas.map.objects.path.Segment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.renderer.BufferBuilder;
@@ -10,12 +11,15 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3i;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import org.lwjgl.opengl.GL11;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -25,7 +29,7 @@ import static org.lwjgl.opengl.GL11.*;
 @Mod.EventBusSubscriber(modid = AntiqueAtlasMod.ID, value = Side.CLIENT)
 public class RenderHandler {
     private static LinkedList<BlockPos> recordingPath = new LinkedList<>();
-    private static List<BlockPos> heldItemPath;
+    private static List<BlockPos> heldItemPath = new ArrayList<>();
 
     private static ItemStack lastHoldItem = ItemStack.EMPTY;
 
@@ -37,9 +41,36 @@ public class RenderHandler {
         recordingPath.clear();
     }
 
-    public static void load(ItemStack stack) {
-        recordingPath.clear();
-        recordingPath.addAll(ItemAriadneThread.getPath(stack));
+    public static BlockPos load(ItemStack stack) {
+        return load(stack, recordingPath);
+    }
+
+    public static BlockPos load(ItemStack stack, List<BlockPos> consumer) {
+        consumer.clear();
+        BlockPos start = ItemAriadneThread.getStart(stack);
+        short[] segments = ItemAriadneThread.getPath(stack);
+        if (start != null && segments != null) {
+            consumer.add(start);
+            BlockPos lastPos = start;
+            for (short index : segments) {
+                Vec3i v = Segment.getVector(index);
+                if (v == null) {
+                    System.out.println("violated ball nbt " + stack + ", " + Arrays.toString(segments));
+                    return onlyCurrent(consumer);
+                }
+                lastPos = lastPos.add(v);
+                consumer.add(lastPos);
+            }
+            return lastPos;
+        }
+
+        return onlyCurrent(consumer);
+    }
+
+    private static BlockPos onlyCurrent(List<BlockPos> consumer) {
+        BlockPos lastPos = ItemAriadneThread.posOfPlayer(Minecraft.getMinecraft().player);
+        consumer.add(lastPos);
+        return lastPos;
     }
 
     @SubscribeEvent
@@ -52,9 +83,10 @@ public class RenderHandler {
         } else {
             if (current != lastHoldItem) {
                 lastHoldItem = current;
-                heldItemPath = ItemAriadneThread.getPath(current);
+                load(current, heldItemPath);
             }
-            renderLine(heldItemPath, event.getPartialTicks());
+            if (heldItemPath.size() > 1)
+                renderLine(heldItemPath, event.getPartialTicks());
         }
     }
 
@@ -93,8 +125,6 @@ public class RenderHandler {
     }
 
     private static void setupGL() {
-        GlStateManager.pushMatrix();
-
         GlStateManager.disableTexture2D();
         GlStateManager.color(1, 1, 1, 1);
         GlStateManager.disableLighting();
@@ -106,17 +136,9 @@ public class RenderHandler {
     }
 
     private static void resetGL() {
-        GlStateManager.popMatrix();
-
         GlStateManager.enableTexture2D();
         GlStateManager.enableAlpha();
         GlStateManager.disableBlend();
         glDisable(GL_LINE_SMOOTH);
-    }
-
-    public static void clearLast(int amount) {
-        for (int i = 0; i < amount; i++) {
-            recordingPath.removeLast();
-        }
     }
 }

@@ -46,3 +46,5 @@ key.antiqueatlas.category=Antique Atlas
 
 gui.antiqueatlas.filterMarkers=Filter Markers
 gui.antiqueatlas.publishMarker=Share Marker
+
+msg.too.far=Too far from previous position

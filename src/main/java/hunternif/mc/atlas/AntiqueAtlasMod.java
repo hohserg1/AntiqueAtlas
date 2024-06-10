@@ -10,6 +10,7 @@ import hunternif.mc.atlas.ext.watcher.impl.StructureWatcherVillage;
 import hunternif.mc.atlas.map.objects.marker.GlobalMarkersDataHandler;
 import hunternif.mc.atlas.map.objects.marker.MarkersDataHandler;
 import hunternif.mc.atlas.map.objects.marker.NetherPortalWatcher;
+import hunternif.mc.atlas.map.objects.path.PathsDataHandler;
 import hunternif.mc.atlas.network.PacketDispatcher;
 import hunternif.mc.atlas.registry.MarkerRegistry;
 import hunternif.mc.atlas.registry.MarkerType;
@@ -44,6 +45,7 @@ public class AntiqueAtlasMod {
 
     public static final AtlasDataHandler atlasData = new AtlasDataHandler();
     public static final MarkersDataHandler markersData = new MarkersDataHandler();
+    public static final PathsDataHandler pathsData = new PathsDataHandler();
 
     public static final ExtBiomeDataHandler extBiomeData = new ExtBiomeDataHandler();
     public static final GlobalMarkersDataHandler globalMarkersData = new GlobalMarkersDataHandler();
@@ -63,6 +65,7 @@ public class AntiqueAtlasMod {
 
         MinecraftForge.EVENT_BUS.register(atlasData);
         MinecraftForge.EVENT_BUS.register(markersData);
+        MinecraftForge.EVENT_BUS.register(pathsData);
 
         MinecraftForge.EVENT_BUS.register(extBiomeData);
 

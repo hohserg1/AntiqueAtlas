@@ -14,6 +14,10 @@ import hunternif.mc.atlas.event.MarkerHoveredEvent;
 import hunternif.mc.atlas.map.objects.marker.DimensionMarkersData;
 import hunternif.mc.atlas.map.objects.marker.Marker;
 import hunternif.mc.atlas.map.objects.marker.MarkersData;
+import hunternif.mc.atlas.map.objects.path.DimensionPathsData;
+import hunternif.mc.atlas.map.objects.path.Path;
+import hunternif.mc.atlas.map.objects.path.PathsData;
+import hunternif.mc.atlas.map.objects.path.Segment;
 import hunternif.mc.atlas.network.PacketDispatcher;
 import hunternif.mc.atlas.network.server.BrowsingPositionPacket;
 import hunternif.mc.atlas.registry.MarkerRegistry;
@@ -32,6 +36,7 @@ import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3i;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextComponentTranslation;
@@ -45,11 +50,10 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static net.minecraft.util.math.MathHelper.clamp;
+import static org.lwjgl.opengl.GL11.*;
 
 public class GuiAtlas extends GuiComponent {
     public static final int WIDTH = 310;
@@ -331,6 +335,7 @@ public class GuiAtlas extends GuiComponent {
      * Local markers in the current dimension
      */
     protected DimensionMarkersData localMarkersData;
+    protected DimensionPathsData localPathsData;
     /**
      * The marker highlighted by the eraser. Even though multiple markers may
      * be highlighted at the same time, only one of them will be deleted.
@@ -842,16 +847,21 @@ public class GuiAtlas extends GuiComponent {
     private void updateAtlasData() {
         int atlasID = getAtlasID();
 
-        biomeData = AntiqueAtlasMod.atlasData
-                .getAtlasData(atlasID, player.getEntityWorld())
-                .getDimensionData(player.dimension);
-        MarkersData markersData = AntiqueAtlasMod.markersData
-                .getMarkersData(atlasID, player.getEntityWorld());
+        biomeData = AntiqueAtlasMod.atlasData.getAtlasData(atlasID, player.getEntityWorld()).getDimensionData(player.dimension);
+
+        MarkersData markersData = AntiqueAtlasMod.markersData.getMarkersData(atlasID, player.getEntityWorld());
+
         if (markersData != null) {
-            localMarkersData = markersData
-                    .getMarkersDataInDimension(player.dimension);
+            localMarkersData = markersData.getMarkersDataInDimension(player.dimension);
         } else {
             localMarkersData = null;
+        }
+
+        PathsData pathsData = AntiqueAtlasMod.pathsData.getOrCreate(atlasID, player.getEntityWorld());
+        if (pathsData != null) {
+            localPathsData = pathsData.get(player.getEntityWorld());
+        } else {
+            localPathsData = null;
         }
     }
 
@@ -1007,6 +1017,25 @@ public class GuiAtlas extends GuiComponent {
                 }
             }
         }
+        if (localPathsData != null) {
+            Set<Path> paths = new HashSet<>();
+            for (int x = markersStartX; x <= markersEndX; x++) {
+                for (int z = markersStartZ; z <= markersEndZ; z++) {
+                    paths.addAll(localPathsData.getPathsInChunk(x, z));
+                }
+            }
+
+            GlStateManager.disableTexture2D();
+            glEnable(GL_LINE_SMOOTH);
+            GlStateManager.glLineWidth((float) iconScale);
+
+            for (Path path : paths) {
+                renderPath(path, getPathScale(), markersStartX, markersEndX, markersStartZ, markersEndZ);
+            }
+
+            glDisable(GL_LINE_SMOOTH);
+            GlStateManager.enableTexture2D();
+        }
 
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
 
@@ -1081,6 +1110,32 @@ public class GuiAtlas extends GuiComponent {
             drawDefaultBackground();
             progressBar.draw((width - 100) / 2, height / 2 - 34);
         }
+    }
+
+    private void renderPath(Path path, double iconScale, int markersStartX, int markersEndX, int markersStartZ, int markersEndZ) {
+
+        float red = ((path.color >> 16) & 0xFF) / 255f;
+        float green = ((path.color >> 8) & 0xFF) / 255f;
+        float blue = (path.color & 0xFF) / 255f;
+
+        int x = path.startX;
+        int z = path.startZ;
+
+        BufferBuilder buffer = Tessellator.getInstance().getBuffer();
+        buffer.begin(GL11.GL_LINE_STRIP, DefaultVertexFormats.POSITION_COLOR);
+
+        buffer.pos(worldXToScreenX(x), worldZToScreenY(z), 0).color(red, green, blue, 0.8f).endVertex();
+
+        for (short segment : path.segments) {
+            Vec3i vector = Segment.getVector(segment);
+            if (vector == null)
+                break;
+            x += vector.getX();
+            z += vector.getZ();
+            buffer.pos(worldXToScreenX(x), worldZToScreenY(z), 0).color(red, green, blue, 0.8f).endVertex();
+        }
+
+        Tessellator.getInstance().draw();
     }
 
     private boolean isOuterMarker(int markersStartX, int markersStartZ, int markersEndX, int markersEndZ, Marker marker) {
@@ -1284,6 +1339,10 @@ public class GuiAtlas extends GuiComponent {
      */
     protected double getIconScale() {
         return SettingsConfig.userInterface.doScaleMarkers ? (mapScale < 0.5 ? 0.5 : mapScale > 1 ? 2 : 1) : 1;
+    }
+
+    protected double getPathScale() {
+        return SettingsConfig.userInterface.doScaleMarkers ? 1 / clamp(mapScale, 0.5, 1) : 2;
     }
 
     /**

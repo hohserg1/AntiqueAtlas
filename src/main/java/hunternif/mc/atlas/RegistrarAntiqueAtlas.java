@@ -1,14 +1,20 @@
 package hunternif.mc.atlas;
 
-import hunternif.mc.atlas.item.*;
+import hunternif.mc.atlas.item.ItemAriadneThread;
+import hunternif.mc.atlas.item.ItemAstrolabe;
+import hunternif.mc.atlas.item.ItemAtlas;
+import hunternif.mc.atlas.item.ItemEmptyAtlas;
+import hunternif.mc.atlas.recipe.RecipeAriadneThreadColoring;
 import hunternif.mc.atlas.recipe.RecipeAtlasCloning;
 import hunternif.mc.atlas.recipe.RecipeAtlasCombining;
+import hunternif.mc.atlas.recipe.RecipeTransferPathToAtlas;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.client.event.ColorHandlerEvent;
 import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.event.RegistryEvent;
@@ -49,6 +55,8 @@ public class RegistrarAntiqueAtlas {
             event.getRegistry().register(new ShapelessOreRecipe(new ResourceLocation(AntiqueAtlasMod.ID, "atlas"), new ItemStack(EMPTY_ATLAS), Items.BOOK, Items.COMPASS).setRegistryName("atlas_blank"));
             event.getRegistry().register(new RecipeAtlasCloning().setRegistryName("atlas_clone"));
             event.getRegistry().register(new RecipeAtlasCombining().setRegistryName("atlas_combine"));
+            event.getRegistry().register(new RecipeTransferPathToAtlas().setRegistryName("path_transfer"));
+            event.getRegistry().register(new RecipeAriadneThreadColoring().setRegistryName("ariadne_thread_coloring"));
         }
     }
 
@@ -61,6 +69,12 @@ public class RegistrarAntiqueAtlas {
             ModelLoader.setCustomModelResourceLocation(ARIADNE_THREAD, 0, new ModelResourceLocation(ARIADNE_THREAD.getRegistryName(), "inventory"));
             ModelLoader.setCustomMeshDefinition(ATLAS, stack -> new ModelResourceLocation(ATLAS.getRegistryName(), "inventory"));
         }
+    }
+
+    @SubscribeEvent
+    @SideOnly(Side.CLIENT)
+    public static void registerColorHandlers(ColorHandlerEvent.Item event) {
+        event.getItemColors().registerItemColorHandler((stack, tintIndex) -> ARIADNE_THREAD.getColor(stack), ARIADNE_THREAD);
     }
 
     // Probably not needed since Forge for 1.12 does not support transfers from earlier than 1.11.2, but just in case
