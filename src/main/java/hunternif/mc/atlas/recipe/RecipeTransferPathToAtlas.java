@@ -43,8 +43,11 @@ public class RecipeTransferPathToAtlas extends ShapelessRecipes {
         NonNullList<ItemStack> r = NonNullList.<ItemStack>withSize(inv.getSizeInventory(), ItemStack.EMPTY);
         for (int i = 0; i < r.size(); ++i) {
             ItemStack stack = inv.getStackInSlot(i);
-            if (stack.getItem() == ARIADNE_THREAD)
-                r.set(i, stack.copy());
+            if (stack.getItem() == ARIADNE_THREAD) {
+                ItemStack copy = stack.copy();
+                copy.setCount(1);
+                r.set(i, copy);
+            }
         }
         return r;
     }
