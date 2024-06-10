@@ -83,7 +83,7 @@ public class ItemAriadneThread extends Item {
         if (hasColor(stack))
             return stack.getTagCompound().getCompoundTag("display").getInteger("color");
 
-        return 0xffFFffFF;
+        return 0xff5BCF1F;
     }
 
     public void removeColor(ItemStack stack) {
