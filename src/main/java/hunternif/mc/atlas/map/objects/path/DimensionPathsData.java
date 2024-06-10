@@ -58,6 +58,7 @@ public class DimensionPathsData {
 
     public void removePath(int pathID) {
         Path removed = idToPath.remove(pathID);
+        parent.markDirty();
         if (removed != null) {
             if (FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT) {
                 chunkToPath.values().forEach(e -> e.remove(removed));
