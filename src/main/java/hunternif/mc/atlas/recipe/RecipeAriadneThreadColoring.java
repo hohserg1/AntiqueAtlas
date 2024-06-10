@@ -23,7 +23,7 @@ public class RecipeAriadneThreadColoring extends RecipeBase {
             } else if (DyeUtils.isDye(stack)) {
                 dyeFound = true;
 
-            } else
+            } else if(!stack.isEmpty())
                 return false;
         }
         return !ball.isEmpty() && dyeFound;
