@@ -2,14 +2,18 @@ package hunternif.mc.atlas.item;
 
 import hunternif.mc.atlas.client.ariadne.thread.RecordingHandler;
 import hunternif.mc.atlas.map.objects.path.Path;
+import net.minecraft.block.BlockCauldron;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumActionResult;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -61,6 +65,24 @@ public class ItemAriadneThread extends Item {
     }
 
     @Override
+    public EnumActionResult onItemUse(EntityPlayer player, World worldIn, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
+        IBlockState blockState = worldIn.getBlockState(pos);
+        if (blockState.getBlock() == Blocks.CAULDRON) {
+            ItemStack heldItem = player.getHeldItem(hand);
+            int level = blockState.getValue(BlockCauldron.LEVEL);
+            if (level > 0) {
+                Blocks.CAULDRON.setWaterLevel(worldIn, pos, blockState, level - 1);
+                removeColor(heldItem);
+                return EnumActionResult.SUCCESS;
+            }
+            markActive(heldItem, false, player);
+
+            return EnumActionResult.FAIL;
+        }
+        return EnumActionResult.PASS;
+    }
+
+    @Override
     public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
         super.addInformation(stack, worldIn, tooltip, flagIn);
         tooltip.add(I18n.format("item.ariadne_thread.tooltip1"));
@@ -72,28 +94,31 @@ public class ItemAriadneThread extends Item {
         return isActive(stack);
     }
 
+    private String displayKey = "display";
+    private String colorKey = "color";
+
     public boolean hasColor(ItemStack stack) {
         NBTTagCompound nbttagcompound = stack.getTagCompound();
         return nbttagcompound != null &&
-                nbttagcompound.hasKey("display", Constants.NBT.TAG_COMPOUND) &&
-                nbttagcompound.getCompoundTag("display").hasKey("color", Constants.NBT.TAG_INT);
+                nbttagcompound.hasKey(displayKey, Constants.NBT.TAG_COMPOUND) &&
+                nbttagcompound.getCompoundTag(displayKey).hasKey(colorKey, Constants.NBT.TAG_INT);
     }
 
     public int getColor(ItemStack stack) {
         if (hasColor(stack))
-            return stack.getTagCompound().getCompoundTag("display").getInteger("color");
+            return stack.getTagCompound().getCompoundTag(displayKey).getInteger(colorKey);
 
         return 0xff5BCF1F;
     }
 
     public void removeColor(ItemStack stack) {
         if (stack.hasTagCompound()) {
-            stack.getTagCompound().getCompoundTag("display").removeTag("color");
+            stack.getTagCompound().getCompoundTag(displayKey).removeTag(colorKey);
         }
     }
 
     public void setColor(ItemStack stack, int color) {
-        stack.getOrCreateSubCompound("display").setInteger("color", color);
+        stack.getOrCreateSubCompound(displayKey).setInteger(colorKey, color);
     }
 
     private static String startKey = "start";
@@ -153,6 +178,14 @@ public class ItemAriadneThread extends Item {
             return null;
 
         return Path.loadSegments(segmentsBytes);
+    }
+
+    public static void clearPath(ItemStack stack) {
+        if (stack.hasTagCompound()) {
+            stack.getTagCompound().removeTag(startKey);
+            stack.getTagCompound().removeTag(segmentsKey);
+            stack.getTagCompound().removeTag(activeKey);
+        }
     }
 
 }
