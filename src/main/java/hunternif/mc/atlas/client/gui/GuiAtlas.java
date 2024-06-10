@@ -35,6 +35,7 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3i;
 import net.minecraft.util.text.ITextComponent;
@@ -1368,5 +1369,17 @@ public class GuiAtlas extends GuiComponent {
 
     private static void printLocalizedMessageToChat(String translationKey) {
         Minecraft.getMinecraft().ingameGUI.getChatGUI().printChatMessage(new TextComponentTranslation(translationKey));
+    }
+
+    public void addMarkerLookingAt(BlockPos pos) {
+        markerFinalizer.setMarkerData(player.getEntityWorld(), getAtlasID(), player.dimension, pos.getX(), pos.getZ());
+        addChild(markerFinalizer);
+
+        blinkingIcon.setTexture(markerFinalizer.selectedType.getIcon(), MARKER_SIZE, MARKER_SIZE);
+        addChildBehind(markerFinalizer, blinkingIcon)
+                .setRelativeCoords(worldXToScreenX(pos.getX()) - getGuiX() - MARKER_SIZE / 2, worldZToScreenY(pos.getZ())- getGuiY() - MARKER_SIZE / 2);
+
+        setInterceptKeyboard(true);
+        KeyBinding.unPressAllKeys();
     }
 }

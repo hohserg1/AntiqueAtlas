@@ -1,5 +1,6 @@
 package hunternif.mc.atlas;
 
+import hunternif.mc.atlas.api.AtlasAPI;
 import hunternif.mc.atlas.client.*;
 import hunternif.mc.atlas.client.gui.ExportProgressOverlay;
 import hunternif.mc.atlas.client.gui.GuiAstrolabe;
@@ -20,6 +21,8 @@ import net.minecraft.init.Biomes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.IThreadListener;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.biome.Biome;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.client.FMLClientHandler;
@@ -141,6 +144,33 @@ public class ClientProxy extends CommonProxy implements IResourceManagerReloadLi
             openAtlasGUI(guiAstrolabe.prepareToOpen());
     }
 
+    @Override
+    public void addMarkerLookingAt(EntityPlayer player) {
+        GuiAtlas gui;
+        if (SettingsConfig.gameplay.itemNeeded) {
+            ItemStack atlasStack = getPlayerAtlasStack(Minecraft.getMinecraft().player);
+            if (atlasStack.isEmpty())
+                return;
+            gui = guiAtlas.prepareToOpen(atlasStack);
+        } else
+            gui = guiAtlas.prepareToOpen();
+
+        RayTraceResult rayTraceResult = player.rayTrace(
+                Minecraft.getMinecraft().gameSettings.renderDistanceChunks * 16,
+                Minecraft.getMinecraft().getRenderPartialTicks()
+        );
+        if (rayTraceResult == null)
+            return;
+
+        if (rayTraceResult.typeOfHit != RayTraceResult.Type.BLOCK)
+            return;
+
+        BlockPos blockPos = rayTraceResult.getBlockPos();
+
+        openAtlasGUI(gui);
+        gui.addMarkerLookingAt(blockPos);
+
+    }
 
     public static ItemStack getPlayerAtlasStack(EntityPlayer player) {
         ItemStack stack = player.getHeldItemOffhand();

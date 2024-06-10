@@ -1,6 +1,8 @@
 package hunternif.mc.atlas.item;
 
 import hunternif.mc.atlas.AntiqueAtlasMod;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.IItemPropertyGetter;
@@ -16,6 +18,7 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
 public class ItemAstrolabe extends Item {
     {
@@ -64,9 +67,19 @@ public class ItemAstrolabe extends Item {
         ItemStack stack = playerIn.getHeldItem(hand);
 
         if (world.isRemote) {
-            AntiqueAtlasMod.proxy.openAstrolabeGUI();
+            if (playerIn.isSneaking())
+                AntiqueAtlasMod.proxy.addMarkerLookingAt(playerIn);
+            else
+                AntiqueAtlasMod.proxy.openAstrolabeGUI();
         }
 
         return new ActionResult<>(EnumActionResult.SUCCESS, stack);
+    }
+
+    @Override
+    public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
+        super.addInformation(stack, worldIn, tooltip, flagIn);
+        tooltip.add(I18n.format("item.antique_astrolabe.tooltip1"));
+        tooltip.add(I18n.format("item.antique_astrolabe.tooltip2"));
     }
 }

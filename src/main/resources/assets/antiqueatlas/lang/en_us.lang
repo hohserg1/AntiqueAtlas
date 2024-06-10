@@ -6,6 +6,9 @@ item.ariadne_thread.name=Ariadne Thread Ball
 item.ariadne_thread.tooltip1=Right click to start recording path
 item.ariadne_thread.tooltip2=Sneak+right click to stop recording path
 
+item.antique_astrolabe.tooltip1=Right click to select marker for tracking
+item.antique_astrolabe.tooltip2=Sneak+right click to add marker on block you are looking at
+
 gui.antiqueatlas.scalebar=Scale in blocks
 gui.antiqueatlas.addMarker=Add marker
 gui.antiqueatlas.delMarker=Delete marker

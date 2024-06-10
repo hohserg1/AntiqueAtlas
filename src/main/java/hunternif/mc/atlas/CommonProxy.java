@@ -128,4 +128,7 @@ public class CommonProxy {
 			extTileIdMap.setDirty(false);
 		}
 	}
+
+	public void addMarkerLookingAt(EntityPlayer player) {
+	}
 }

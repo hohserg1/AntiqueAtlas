@@ -6,6 +6,9 @@ item.ariadne_thread.name=Клубок ниток Ариадны
 item.ariadne_thread.tooltip1=ПКМ чтобы начать запись пути
 item.ariadne_thread.tooltip2=Шифт+ПКМ чтобы остановить
 
+item.antique_astrolabe.tooltip1=ПКМ чтобы выбрать метку для отслеживания
+item.antique_astrolabe.tooltip2=Шифт+ПКМ чтобы добавить маркер на блок, на который смотрите
+
 gui.antiqueatlas.scalebar=Масштаб в блоках
 gui.antiqueatlas.addMarker=Добавить метку
 gui.antiqueatlas.delMarker=Удалить метку
