@@ -76,6 +76,10 @@ public class DimensionPathsData {
         for (int i = 0; i < pathesNbt.tagCount(); i++) {
             Path path = new Path(pathesNbt.getCompoundTagAt(i));
             idToPath.put(path.id, path);
+
+            if (largestID.intValue() < path.id) {
+                largestID.set(path.id);
+            }
         }
 
         if (FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT) {
