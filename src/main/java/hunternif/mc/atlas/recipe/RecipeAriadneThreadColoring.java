@@ -70,7 +70,7 @@ public class RecipeAriadneThreadColoring extends RecipeBase {
                 resultBlue += blue;
                 ++colorCount;
 
-            } else
+            } else if(!stack.isEmpty())
                 return ItemStack.EMPTY;
 
         }
