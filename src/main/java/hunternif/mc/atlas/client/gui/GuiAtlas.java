@@ -1019,6 +1019,7 @@ public class GuiAtlas extends GuiComponent {
         // Don't draw global markers! They will be added as local markers.
 
         // Draw local markers:
+        hoveredMarker = null;
         if (localMarkersData != null) {
             for (int x = markersStartX; x <= markersEndX; x++) {
                 for (int z = markersStartZ; z <= markersEndZ; z++) {
