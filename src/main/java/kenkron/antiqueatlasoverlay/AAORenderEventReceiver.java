@@ -276,7 +276,7 @@ public class AAORenderEventReceiver {
             int x = path.startX;
             int z = path.startZ;
 
-            buffer.pos(worldXToScreenX(playerPos, shapeMiddleX, x) + AAOConfig.appearance.markerSize / 2d, worldZToScreenY(playerPos, shapeMiddleY, z) + AAOConfig.appearance.markerSize / 2d, 0).color(0, 0, 0, 0).endVertex();
+            buffer.pos(worldXToScreenXCentered(playerPos, shapeMiddleX, x), worldZToScreenYCentered(playerPos, shapeMiddleY, z), 0).color(0, 0, 0, 0).endVertex();
 
             for (short segment : path.segments) {
                 Vec3i vector = Segment.getVector(segment);
@@ -284,7 +284,7 @@ public class AAORenderEventReceiver {
                     break;
                 x += vector.getX();
                 z += vector.getZ();
-                buffer.pos(worldXToScreenX(playerPos, shapeMiddleX, x) + AAOConfig.appearance.markerSize / 2d, worldZToScreenY(playerPos, shapeMiddleY, z) + AAOConfig.appearance.markerSize / 2d, 0).color(red, green, blue, 0.8f).endVertex();
+                buffer.pos(worldXToScreenXCentered(playerPos, shapeMiddleX, x), worldZToScreenYCentered(playerPos, shapeMiddleY, z), 0).color(red, green, blue, 0.8f).endVertex();
             }
         }
 
@@ -294,6 +294,14 @@ public class AAORenderEventReceiver {
         GlStateManager.enableTexture2D();
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
         GlStateManager.color(1, 1, 1, 1);
+    }
+
+    private static double worldZToScreenYCentered(Vec3d playerPos, double shapeMiddleY, int z) {
+        return worldZToScreenY(playerPos, shapeMiddleY, z) + AAOConfig.appearance.markerSize / 2d;
+    }
+
+    private static double worldXToScreenXCentered(Vec3d playerPos, double shapeMiddleX, int x) {
+        return worldXToScreenX(playerPos, shapeMiddleX, x) + AAOConfig.appearance.markerSize / 2d;
     }
 
     private static double worldZToScreenY(Vec3d playerPos, double shapeMiddleY, double z) {
