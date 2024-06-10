@@ -76,10 +76,7 @@ public class PathsPacket extends AbstractMessage.AbstractClientMessage<PathsPack
 
     @Override
     protected void process(EntityPlayer player, Side side) {
-        if (player.world.provider.getDimension() == dimension) {
-            DimensionPathsData dimensionPathsData = AntiqueAtlasMod.pathsData.getOrCreate(atlasID, player.getEntityWorld()).get(player.world);
-            paths.forEach(dimensionPathsData::loadPath);
-        } else
-            System.out.println("received packet about atlas paths of not current dimension");
+        DimensionPathsData dimensionPathsData = AntiqueAtlasMod.pathsData.getOrCreate(atlasID, player.getEntityWorld()).get(dimension);
+        paths.forEach(dimensionPathsData::loadPath);
     }
 }
