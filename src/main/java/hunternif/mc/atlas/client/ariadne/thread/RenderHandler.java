@@ -78,7 +78,7 @@ public class RenderHandler {
         ItemStack current = getCurrentHeldItem();
         if (current.isEmpty() || ItemAriadneThread.isActive(current)) {
             if (RecordingHandler.isActive()) {
-                renderLine(recordingPath, event.getPartialTicks());
+                renderLine(recordingPath, event.getPartialTicks(), getActiveItemStack());
             }
         } else {
             if (current != lastHoldItem) {
@@ -86,8 +86,21 @@ public class RenderHandler {
                 load(current, heldItemPath);
             }
             if (heldItemPath.size() > 1)
-                renderLine(heldItemPath, event.getPartialTicks());
+                renderLine(heldItemPath, event.getPartialTicks(), lastHoldItem);
         }
+    }
+
+    private static ItemStack getActiveItemStack() {
+        EntityPlayerSP player = Minecraft.getMinecraft().player;
+        int slot = RecordingHandler.getActiveItem(player);
+        if (slot == -1)
+            return player.inventory.getItemStack();
+
+        else if (0 <= slot && slot < player.inventory.getSizeInventory())
+            return player.inventory.getStackInSlot(slot);
+
+        else
+            return ItemStack.EMPTY;
     }
 
     private static ItemStack getCurrentHeldItem() {
@@ -103,7 +116,12 @@ public class RenderHandler {
             return ItemStack.EMPTY;
     }
 
-    private static void renderLine(List<BlockPos> poses, float partialTicks) {
+    private static void renderLine(List<BlockPos> poses, float partialTicks, ItemStack ball) {
+        int color = ARIADNE_THREAD.getColor(ball);
+        int red = (color >> 16) & 0xFF;
+        int green = (color >> 8) & 0xFF;
+        int blue = (color) & 0xFF;
+
         EntityPlayerSP self = Minecraft.getMinecraft().player;
         double x = self.lastTickPosX + (self.posX - self.lastTickPosX) * partialTicks;
         double y = self.lastTickPosY + (self.posY - self.lastTickPosY) * partialTicks;
@@ -114,10 +132,10 @@ public class RenderHandler {
         buffer.begin(GL11.GL_LINE_STRIP, DefaultVertexFormats.POSITION_COLOR);
 
         for (BlockPos p : poses) {
-            buffer.pos(p.getX() + 0.5 - x, p.getY() + 0.5 - y, p.getZ() + 0.5 - z).color(49 / 255f, 165 / 255f, 0, 0.8f).endVertex();
+            buffer.pos(p.getX() + 0.5 - x, p.getY() + 0.5 - y, p.getZ() + 0.5 - z).color(red, green, blue, 200).endVertex();
         }
 
-        buffer.pos(0, 0, 0).color(0, 0.7f, 0, 0.8f).endVertex();
+        buffer.pos(0, 0, 0).color(red, green, blue, 200).endVertex();
 
         Tessellator.getInstance().draw();
 
