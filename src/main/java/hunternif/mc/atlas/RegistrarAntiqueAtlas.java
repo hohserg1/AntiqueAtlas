@@ -4,10 +4,7 @@ import hunternif.mc.atlas.item.ItemAriadneThread;
 import hunternif.mc.atlas.item.ItemAstrolabe;
 import hunternif.mc.atlas.item.ItemAtlas;
 import hunternif.mc.atlas.item.ItemEmptyAtlas;
-import hunternif.mc.atlas.recipe.RecipeAriadneThreadColoring;
-import hunternif.mc.atlas.recipe.RecipeAtlasCloning;
-import hunternif.mc.atlas.recipe.RecipeAtlasCombining;
-import hunternif.mc.atlas.recipe.RecipeTransferPathToAtlas;
+import hunternif.mc.atlas.recipe.*;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
@@ -51,7 +48,7 @@ public class RegistrarAntiqueAtlas {
     @SubscribeEvent
     public static void registerRecipes(RegistryEvent.Register<IRecipe> event) {
         if (SettingsConfig.gameplay.itemNeeded) {
-            event.getRegistry().register(new ShapelessOreRecipe(new ResourceLocation(AntiqueAtlasMod.ID, "atlas"), new ItemStack(ARIADNE_THREAD), ARIADNE_THREAD).setRegistryName("ariadne_thread_clearing"));
+            event.getRegistry().register(new RecipeAriadneThreadPathClearing().setRegistryName("ariadne_thread_clearing"));
             event.getRegistry().register(new ShapelessOreRecipe(new ResourceLocation(AntiqueAtlasMod.ID, "atlas"), new ItemStack(EMPTY_ATLAS), Items.BOOK, Items.COMPASS).setRegistryName("atlas_blank"));
             event.getRegistry().register(new RecipeAtlasCloning().setRegistryName("atlas_clone"));
             event.getRegistry().register(new RecipeAtlasCombining().setRegistryName("atlas_combine"));
